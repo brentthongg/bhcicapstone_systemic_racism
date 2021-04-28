@@ -1,3 +1,7 @@
+/* All the models for each table in the database but I'm not sure how important
+   everything is, especially since we don't write to the database from this
+   application besides the session data. */
+
 class Choice {
     constructor(responses, results) {
         if (responses.length === 0 && results.length !== 1) {

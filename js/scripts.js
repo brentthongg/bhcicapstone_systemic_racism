@@ -430,7 +430,7 @@ function createStoryButton(name, context) {
 function createStoryIterator(story) {
 
     const sceneIterator = {
-        curr: 1,
+        curr: 1, //
         get: (sceneId = -1) => {
             if (sceneId === -1 && sceneIterator.curr in story.scenes) {
                 return story.scenes[sceneIterator.curr];
