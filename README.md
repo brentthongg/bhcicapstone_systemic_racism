@@ -1,1 +1,1 @@
-# bhcicapstone_systemic_racism
+# BHCI Capstone Project - Systemic Racism
