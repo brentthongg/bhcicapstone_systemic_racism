@@ -1,1 +1,1 @@
-# BHCI Capstone Project - Systemic Racism
+# BHCI Capstone Project - Understanding Systemic Racism
