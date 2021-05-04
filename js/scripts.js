@@ -11,7 +11,6 @@ var totalTime = 0;
 var startTime;
 var sceneIterator;
 
-
 // Store the locations in case they change due to resize.
 var backButtonLocation = {
     cx: -1,
@@ -141,7 +140,7 @@ function gameMainLoop(context, storyId) {
         return;
     }
 
-    sceneIterator = createStoryIterator(storyData);
+    sceneIterator = new SceneIterator(storyData);
 
     lastTime = Date.now();
     mainLoop(context);
@@ -183,7 +182,8 @@ $(document).ready(function() {
 
 /* HELPER RENDER FUNCTIONS */
 function renderScene(context) {
-    let scene = sceneIterator.get(sceneIterator.curr);
+    let scene = sceneIterator.get();
+    // console.log(scene);
     renderSceneBg(context, scene);
     renderSceneButtons(context, scene);
 }
@@ -210,7 +210,6 @@ function getLines(ctx, text, maxWidth) {
 
 function renderScenePrompt(context, scene) {
     context.font = '32px Quicksand';
-    console.log(scene);
     let lines = getLines(context, scene.prompt, document.documentElement.clientWidth - 600);
     
     x = 300;
@@ -230,7 +229,6 @@ function renderSceneButtons(context, scene) {
         // Only would have a forward button, no choices:
         renderForwardButton(context);
     }
-
     else {
         renderChoiceButtons(context, scene);
     }
@@ -292,6 +290,7 @@ function renderSceneBg(context, scene) {
     bgImage.addEventListener('load', () => {
         let w = document.documentElement.clientWidth;
         let h = w * (9.0 / 16.0); // Maintain full screen proportions
+        context.clearRect(0, 0, w, h);
         context.drawImage(bgImage, 0, 0, w, h);
         renderSceneCharacters(context, scene);
     }, false);
@@ -398,6 +397,7 @@ function handleMousePressed(mousePosition) {
 
         else if (clickedBackButton(mousePosition)) {
             sceneIterator.back();
+            console.log(sceneIterator.curr);
             return;
         }
 
@@ -423,61 +423,6 @@ function createStoryButton(name, context) {
     }
 
     return newBtn;
-}
-
-// Main Story Iterator function creation (should honestly be a class but I 
-// kinda realized that too late so this will do).
-function createStoryIterator(story) {
-
-    const sceneIterator = {
-        curr: 1, //
-        get: (sceneId = -1) => {
-            if (sceneId === -1 && sceneIterator.curr in story.scenes) {
-                return story.scenes[sceneIterator.curr];
-            }
-            else if (sceneId in story.scenes) {
-                return story.scenes[sceneIterator.curr];
-            } else {
-                console.error(`Scene of id ${sceneId} does not exist.`);
-            }
-        },
-
-        nextScenes: () => {
-            let sceneId = sceneIterator.curr;
-            if (sceneId in story.scenes) {
-                return story.scenes[sceneId].choices.results;
-            } else {
-                console.error(`Scene of id ${sceneId} does not exist.`);
-            }
-        },
-
-        next: (sceneId = -1) => {
-            if (sceneId === -1) {
-                sceneId = story.scenes[sceneIterator.curr].choices.results[0];
-            } 
-            sceneIterator.get(sceneId);
-            sceneIterator.curr = sceneId;
-            sceneStack.push(sceneIterator.curr);
-        },
-
-        back: () => {
-            if (sceneStack.length > 0) {
-                let sceneId = sceneStack.pop();
-                if (sceneId in story.scenes) {
-                    sceneIterator.curr = sceneId;
-                    return story.scenes[sceneId];
-                }
-            } else {
-                initCanvas(); // reset
-            }
-           
-        },
-
-        exists: (sceneId) => { // i don't even think this is necessary tbh
-            return sceneId in story.scenes;
-        }
-    };
-    return sceneIterator;
 }
 
 // CITATION:
