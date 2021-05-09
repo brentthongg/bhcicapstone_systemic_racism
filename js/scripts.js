@@ -275,11 +275,21 @@ function renderChoiceButtons(context, scene) {
 
 function renderSceneCharacters(context, scene) {
     for (let i = 0; i < scene.characters.length; i++) {
-        var charImage = resourceManager.get(characterImages[scene.characters[i].id]);
-        let charWidth = charImage.width / 2.0;
-        let charHeight = charImage.height / 2.0;
-        let x0 = document.documentElement.clientWidth / 2 - charWidth / 2;
-        let y0 = document.documentElement.clientHeight / 3;
+        var charImage = resourceManager.get(characterImages[scene.characters[i].charImg.id]);
+        var screenSide = scene.characters[i].charScreenSide;
+        let charWidth = charImage.width / 1.5;
+        let charHeight = charImage.height / 1.5;
+        //varShift represents the shift in the x coords on the screen depending on if char is on left or right of the screen
+        // If no side is defined, the original value
+        let varShift = charWidth/2; 
+        if (screenSide == 'left') {
+            varShift = 1.5*charWidth; 
+        }
+        else if (screenSide == 'right') {
+            varShift = -1 * (charWidth/2); 
+        }; 
+        let x0 = document.documentElement.clientWidth / 2 - varShift; 
+        let y0 = document.documentElement.clientHeight / 4;
         context.drawImage(charImage, x0, y0, charWidth, charHeight);
         renderScenePrompt(context, scene);
     }
