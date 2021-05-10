@@ -46,12 +46,12 @@ class ResourceManager {
         }
     }
 
-    
-
+    // Retrieves the item from the cache by the url.
     get(url) {
         return this.resourceCache[url];
     }
 
+    // Checks that all resources within the cache are properly loaded.
     isReady() {
         var ready = true;
         for (var k in this.resourceCache) {
@@ -63,7 +63,13 @@ class ResourceManager {
         return ready;
     }
 
+    // Upon being ready, execute function.
     onReady(func) {
         this.readyCallbacks.push(func);
+    }
+
+    // Debugging function, just returns out resourceCache.
+    toString() {
+        return this.resourceCache.toString();
     }
 }

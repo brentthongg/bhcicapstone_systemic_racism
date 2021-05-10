@@ -80,7 +80,7 @@ function loadResources(db) {
                     console.log(stories);
                     let scenes = doc.data().scenes;
                     for (var id in scenes) {
-                        allResources.push(scenes[id].imageUrl)
+                        allResources.push(scenes[id].imageUrl);
                     }
                 } else {
                     console.log("No data found for stories.");

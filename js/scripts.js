@@ -2,9 +2,6 @@
    to draw elements onto the screen. */
 
 /* VARIABLES */
-// Holds all the scenes viewed so far so player can go back and forth.
-var sceneStack = [];
-
 // Game variables
 var lastTime;
 var totalTime = 0;
@@ -172,7 +169,8 @@ function update(dt) {
 
 // The main draw function
 function render(context) {
-    renderScene(context)
+    renderScene(context);
+    renderMessages(context);
 }
 
 $(document).ready(function() {
@@ -183,7 +181,6 @@ $(document).ready(function() {
 /* HELPER RENDER FUNCTIONS */
 function renderScene(context) {
     let scene = sceneIterator.get();
-    // console.log(scene);
     renderSceneBg(context, scene);
     renderSceneButtons(context, scene);
 }
@@ -224,6 +221,110 @@ function renderScenePrompt(context, scene) {
     
 }
 
+function paritionMessage(message, ctx) {
+    if (typeof message.text === 'undefined') {
+        console.log(message);
+        return;
+    }
+    let maxWidth = document.documentElement.clientWidth / 4.0;
+    var words = message.text.split(" ");
+    var allLines = [];
+    var currentLine = words[0];
+
+    for (var i = 1; i < words.length; i++) {
+        var word = words[i];
+        var width = ctx.measureText(currentLine + " " + word).width;
+        if (width < maxWidth) {
+            currentLine += " " + word;
+        } else {
+            allLines.push(currentLine);
+            currentLine = word;
+        }
+    }
+    allLines.push(currentLine);
+
+    // height of the first line, but they should all be the same
+    let textMetrics = ctx.measureText(currentLine[0]);
+    let h = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
+    return {lines: allLines, height: h}
+}
+
+function getMessageBoxBounds(context, msgContent, y, side) {
+    let margin = 25;
+    if (side === 'left') {
+        var x0 = (document.documentElement.clientWidth * 0.25) - margin;
+    } else {
+        var x0 = (document.documentElement.clientWidth * 0.6) - margin;
+    }
+
+    let y0 = y - margin - (msgContent.height / 2.0);
+    
+    let maxLength = msgContent.lines.reduce((maxWidth, currMsg) => {
+        // Grabs the largest length in the lines and uses that as the x1.
+        return Math.max(context.measureText(currMsg).width, maxWidth);
+    }, 0)
+    let w = maxLength + (margin * 2);
+    let h = (msgContent.height + margin) * msgContent.lines.length;
+
+    return {x0: x0, y0: y0, width: w, height: h};
+}
+
+function renderMessageBackground(context, msgContent, y, i, side) {
+    let bounds = getMessageBoxBounds(context, msgContent, y, side);
+    let r = 15;
+    let fill = (side === 'left') ? 'white' : 'black';
+    let stroke = 0;
+    
+    let opacity = getMessageOpacity(i);
+    
+    roundRectMsg(context, bounds.x0, bounds.y0, bounds.width, bounds.height, 
+              r, fill, stroke, side, opacity);
+    
+}
+
+function renderSingularMessage(context, msgContent, y, i, side) {
+    let lines = msgContent.lines;
+    let height = msgContent.height;
+    let margin = 10;
+    context.font = '20px Quicksand';
+
+    // First draw the message background:
+    renderMessageBackground(context, msgContent, y, i, side);
+
+    // Then write the text:
+    for (let j = 0; j < lines.length; j++) {
+        let line = lines[j];
+        if (side === "left") {
+            var x = document.documentElement.clientWidth * 0.25;
+            context.fillStyle = 'black';
+        } else {
+            var x = document.documentElement.clientWidth * 0.6;
+            context.fillStyle = 'white';
+        }
+        context.fillText(line, x, y);
+        y += height + margin;
+    }
+    y += 10;
+
+}
+
+function renderMessages(context) {
+    if (sceneIterator.messageQueue.isEmpty()) { return; }
+    var y = document.documentElement.clientHeight / 2.0; // halfway
+    let margin = 20;
+    var iter = 0;
+
+    sceneIterator.messageQueue.forEach((message) => { // This is done FIFO.
+        let result = paritionMessage(message, context);
+        
+        renderSingularMessage(context, result, y, iter, message.side);
+        y -= result.height + margin;
+        iter++;
+        
+    });
+
+}
+
 function renderSceneButtons(context, scene) {
     if (scene.choices.responses.length === 0) {
         // Only would have a forward button, no choices:
@@ -239,14 +340,12 @@ function renderSceneButtons(context, scene) {
 
 function renderSingularChoiceButton(context, response, choiceNum) {
     context.font = '16px Quicksand';
-    let margin = 20; 
-    let width = context.measureText(response).width + (margin * 2);
-    let height = 50;
+    let margin = 15; 
 
-    let x0 = (document.documentElement.clientWidth / 2) - (width / 2);
-    let y0 = ((document.documentElement.clientHeight * .75) + 
-              (choiceNum * (height + margin)));
-    
+    let x0 = sceneButtonLocations[choiceNum].x0;
+    let y0 = sceneButtonLocations[choiceNum].y0;
+    let width = sceneButtonLocations[choiceNum].width;
+    let height = sceneButtonLocations[choiceNum].height;
     
     context.fillStyle = 'rgba(255, 255, 255, 0.85)';
     context.shadowBlur = 5;
@@ -256,26 +355,76 @@ function renderSingularChoiceButton(context, response, choiceNum) {
     context.fillStyle = 'black';  
     context.fillText(response, x0 + margin, 
                      y0 + (margin / 4.0) + (height / 2.0));
+}
 
-    // Update
-    sceneButtonLocations[choiceNum] = {
-        x0: x0,
-        y0: y0,
-        width: width,
-        height: height 
-    };
+function updateSceneButtonLocations(scene, context) {
+    context.font = "16px Quicksand";
+    let margin = 15;
+    let height = 50;
+
+    /* First, get the length of the entire number of responses, and then 
+       half of that width, which will be how much to subtract off of the
+       middle of the screen to get to the starting point. */
+    var totalWidth = 0;
+    for (let i = 0; i < scene.choices.responses.length; i++) {
+        if (scene.choices.choiceTexts) {
+            response = scene.choices.choiceTexts[i];
+        } else {
+            response = scene.choices.responses[i];
+        }
+
+        totalWidth += context.measureText(response).width;
+        totalWidth += (margin * 2);
+        // Don't add the margin to the last response: 
+        if (i + 1 !== scene.choices.responses.length) {
+            totalWidth += margin;
+        }
+    }
+    var baseX = (document.documentElement.clientWidth / 2.0) - (totalWidth / 2.0);
+
+    for (let i = 0; i < scene.choices.responses.length; i++) {
+        var response;
+        if (scene.choices.choiceTexts) {
+            response = scene.choices.choiceTexts[i];
+        } else {
+            response = scene.choices.responses[i];
+        }
+
+        context.font = "16px Quicksand";
+        let width = context.measureText(response).width + (margin * 2);
+        let x0 = baseX + margin;
+        let y0 = document.documentElement.clientHeight * .8;
+
+        sceneButtonLocations[i] = {
+            x0: x0,
+            y0: y0,
+            width: width,
+            height: height
+        };
+
+        baseX += width + margin;
+
+    }
+
 }
 
 function renderChoiceButtons(context, scene) {
-    for (let i = 0; i < scene.choices.responses.length; i++) {
-        let response = scene.choices.responses[i];
-        renderSingularChoiceButton(context, response, i);
+    updateSceneButtonLocations(scene, context);
+
+    var responseCount = scene.choices.responses.length;
+    for (let i = 0; i < responseCount; i++) {
+        var response = scene.choices.responses[i];
+        if (scene.choices.choiceTexts) {
+            response = scene.choices.choiceTexts[i];
+        }
+
+        renderSingularChoiceButton(context, response, i, responseCount);
     }
 }
 
 function renderSceneCharacters(context, scene) {
     for (let i = 0; i < scene.characters.length; i++) {
-        var charImage = resourceManager.get(characterImages[scene.characters[i].id]);
+        var charImage = resourceManager.get(characterImages[scene.characters[i].charImg.id]);
         let charWidth = charImage.width / 2.0;
         let charHeight = charImage.height / 2.0;
         let x0 = document.documentElement.clientWidth / 2 - charWidth / 2;
@@ -392,12 +541,11 @@ function handleMousePressed(mousePosition) {
 
         if (sceneClickResult.wasClicked) {
             let results = sceneIterator.nextScenes();
-            sceneIterator.next(results[sceneClickResult.button]);
+            sceneIterator.next(results[sceneClickResult.button], sceneClickResult.button);
         }
 
         else if (clickedBackButton(mousePosition)) {
             sceneIterator.back();
-            console.log(sceneIterator.curr);
             return;
         }
 
@@ -423,6 +571,12 @@ function createStoryButton(name, context) {
     }
 
     return newBtn;
+}
+
+function getMessageOpacity(i) {   
+    let maxMessageCount = 4;  
+    let maxOpacity = 1;
+    return maxOpacity - maxOpacity * (i / maxMessageCount);
 }
 
 // CITATION:
@@ -460,5 +614,53 @@ function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
       ctx.stroke();
     }
   
-  }
-  
+}
+
+function roundRectMsg(ctx, x, y, width, height, radius, fill, stroke, side, opacity=1.0) {
+    if (typeof stroke === 'undefined') {
+        stroke = true;
+    }
+    
+    if (typeof radius === 'undefined') {
+        radius = 5;
+    }
+    
+    var blRadius = radius;
+    var brRadius = radius;
+    if (typeof radius === 'number') {
+        if (side === 'left') { blRadius = 0; } 
+        else { brRadius = 0; }
+        radius = {tl: radius, tr: radius, br: brRadius, bl: blRadius};
+    } else {
+        var defaultRadius = {tl: 0, tr: 0, br: 0, bl: bl};
+        for (var side in defaultRadius) {
+            radius[side] = radius[side] || defaultRadius[side];
+        }
+    }
+
+    ctx.beginPath();
+    ctx.globalAlpha = opacity;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = 'black';
+    ctx.moveTo(x + radius.tl, y);
+    ctx.lineTo(x + width - radius.tr, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+    ctx.lineTo(x + width, y + height - radius.br);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+    ctx.lineTo(x + radius.bl, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+    ctx.lineTo(x, y + radius.tl);
+    ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+    ctx.closePath();
+    if (fill) {
+        ctx.fillStyle = fill;
+        ctx.fill();
+    }
+    if (stroke) {
+        ctx.stroke();
+    }
+
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1.0;
+    
+}

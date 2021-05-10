@@ -1,0 +1,600 @@
+{
+    "scenes": {
+        "1": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left",
+                    "charEmotion": "happy"
+                }
+            ],
+            "choices": {
+                "textChoices": ["Ask Mom.", "Ask Dad."],
+                "results": [2],
+                "responses": ["Ask Mom.", "Ask Dad."]
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
+            "prompt": "It’s finally the weekend and you’ve been excited to go to Billy’s house to hang out with some of your friends.",
+            "charResponses": []
+        }, 
+
+        "2": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                }
+            ],
+            "choices": {
+                "textChoices": [],
+                "results": [3],
+                "responses": ["Hey Dad can I go to Billy's house tonight?"]
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
+            "prompt": "This is the first time you’ve been to his house, so your parents will have a lot of questions.",
+            "charResponses": []
+        }, 
+
+        "3": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                },
+
+                {
+                    "charImg": "characters/9JSZ1GFF9HJYNGQuvI2S",
+                    "charScreenSide": "right"
+                }
+            ],
+            "choices": {
+                "textChoices": [],
+                "results": [4],
+                "responses": []
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
+            "prompt": "",
+            "charResponses": []
+        },
+
+        "4": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                },
+
+                {
+                    "charImg": "characters/9JSZ1GFF9HJYNGQuvI2S",
+                    "charScreenSide": "right"
+                }
+            ],
+            "choices": {
+                "textChoices": [],
+                "results": [5],
+                "responses": []
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
+            "prompt": "",
+            "charResponses": ["How do you know Billy?"]
+        },
+
+        "5": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                },
+
+                {
+                    "charImg": "characters/9JSZ1GFF9HJYNGQuvI2S",
+                    "charScreenSide": "right"
+                }
+            ],
+            "choices": {
+                "textChoices": [],
+                "results": [5],
+                "responses": ["He's a friend from fourth period."]
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
+            "prompt": "",
+            "charResponses": []
+        },
+
+        "6": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                },
+
+                {
+                    "charImg": "characters/9JSZ1GFF9HJYNGQuvI2S",
+                    "charScreenSide": "right"
+                }
+            ],
+            "choices": {
+                "textChoices": ["All day...", "Just a few hours..."],
+                "results": [7, 7],
+                "responses": ["All day! Can you pick me up at 10 tonight?", "Just a few hours. Can you pick me up at 6?"]
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
+            "prompt": "",
+            "charResponses": []
+        },
+
+        "7": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                },
+
+                {
+                    "charImg": "characters/9JSZ1GFF9HJYNGQuvI2S",
+                    "charScreenSide": "right"
+                }
+            ],
+            "choices": {
+                "textChoices": [],
+                "results": [8],
+                "responses": []
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
+            "prompt": "",
+            "charResponses": ["Okay sure I'd be happy to. Where does Billy live?"]
+        },
+
+        "8": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                },
+
+                {
+                    "charImg": "characters/9JSZ1GFF9HJYNGQuvI2S",
+                    "charScreenSide": "right"
+                }
+            ],
+            "choices": {
+                "textChoices": [],
+                "results": [9],
+                "responses": ["In Heysworth, about 35 minutes outside of town."]
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
+            "prompt": "",
+            "charResponses": []
+        },
+
+        "9": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                },
+
+                {
+                    "charImg": "characters/9JSZ1GFF9HJYNGQuvI2S",
+                    "charScreenSide": "right"
+                }
+            ],
+            "choices": {
+                "textChoices": [],
+                "results": [10],
+                "responses": []
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
+            "prompt": "Your dad looks concerned, and hesitates with what he should say next. After a few seconds of deep thought, he looks at you with a serious expression.",
+            "charResponses": []
+        },
+
+        "10": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                },
+
+                {
+                    "charImg": "characters/9JSZ1GFF9HJYNGQuvI2S",
+                    "charScreenSide": "right"
+                }
+            ],
+            "choices": {
+                "textChoices": [],
+                "results": [11],
+                "responses": []
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
+            "prompt": "",
+            "charResponses": ["Listen, Deondre. When I was your age, there were signs in these types of neighborhoods saying that black folks were not allowed in the area after dark."]
+        },
+
+        "11": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                },
+
+                {
+                    "charImg": "characters/9JSZ1GFF9HJYNGQuvI2S",
+                    "charScreenSide": "right"
+                }
+            ],
+            "choices": {
+                "textChoices": [],
+                "results": [12],
+                "responses": []
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
+            "prompt": "",
+            "charResponses": ["We avoided going to these areas at all costs, even when the sun was out. We knew they weren’t welcome and that they were still in a lot of danger."]
+        },
+
+        "12": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                },
+
+                {
+                    "charImg": "characters/9JSZ1GFF9HJYNGQuvI2S",
+                    "charScreenSide": "right"
+                }
+            ],
+            "choices": {
+                "textChoices": ["Okay dad.", "This was decades ago.", "Why? What?", "So can I go?"],
+                "results": [13, 14, 15, 16],
+                "responses": ["Okay hurry it up dad...", "Well that was when you were little, dad. It’s not dangerous anymore.", "Why did they do that? What does that mean? Are those signs still there?", "Okay... so can I still go?"]
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
+            "prompt": "",
+            "charResponses": []
+        },
+
+        "13": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                },
+
+                {
+                    "charImg": "characters/9JSZ1GFF9HJYNGQuvI2S",
+                    "charScreenSide": "right"
+                }
+            ],
+            "choices": {
+                "textChoices": [],
+                "results": [17],
+                "responses": []
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
+            "prompt": "",
+            "charResponses": ["Don’t get smart with me. I know you’ve heard this before, but even if the signs are no longer there, the prejudice of people who put them up is still there."]
+        },
+
+        "14": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                },
+
+                {
+                    "charImg": "characters/9JSZ1GFF9HJYNGQuvI2S",
+                    "charScreenSide": "right"
+                }
+            ],
+            "choices": {
+                "textChoices": [],
+                "results": [18],
+                "responses": []
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
+            "prompt": "",
+            "charResponses": ["The signs may be gone, but the prejudice of the people who put them up is still there. Heyworth may not be as dangerous for Black people as it once was, but you still need to be very careful while you are there."]
+        },
+
+        "15": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                },
+
+                {
+                    "charImg": "characters/9JSZ1GFF9HJYNGQuvI2S",
+                    "charScreenSide": "right"
+                }
+            ],
+            "choices": {
+                "textChoices": [],
+                "results": [19],
+                "responses": []
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
+            "prompt": "",
+            "charResponses": ["The signs may be gone, but the prejudice of the people who put them up is still there. Heyworth may not be as dangerous for Black people as it once was, but you still need to be very careful while you are there."]
+        },
+
+        "16": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                },
+
+                {
+                    "charImg": "characters/9JSZ1GFF9HJYNGQuvI2S",
+                    "charScreenSide": "right"
+                }
+            ],
+            "choices": {
+                "textChoices": [],
+                "results": [20],
+                "responses": []
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
+            "prompt": "",
+            "charResponses": ["Listen to me Deondre. I know you’ve heard this before, but even if the signs are no longer there, the prejudice of people who put them up is still there."]
+        },
+
+        "17": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                },
+
+                {
+                    "charImg": "characters/9JSZ1GFF9HJYNGQuvI2S",
+                    "charScreenSide": "right"
+                }
+            ],
+            "choices": {
+                "textChoices": [],
+                "results": [21],
+                "responses": []
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
+            "prompt": "",
+            "charResponses": ["Heyworth may not be as dangerous for Black people as it once was, but you still need to be very careful while you are there. Some people may think you do not belong."]
+        },
+
+        "18": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                },
+
+                {
+                    "charImg": "characters/9JSZ1GFF9HJYNGQuvI2S",
+                    "charScreenSide": "right"
+                }
+            ],
+            "choices": {
+                "textChoices": [],
+                "results": [21],
+                "responses": []
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
+            "prompt": "",
+            "charResponses": ["There aren’t a lot of Black folks in Heyworth even today, and some people may think you do not belong there."]
+        },
+
+        "19": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                },
+
+                {
+                    "charImg": "characters/9JSZ1GFF9HJYNGQuvI2S",
+                    "charScreenSide": "right"
+                }
+            ],
+            "choices": {
+                "textChoices": [],
+                "results": [21],
+                "responses": []
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
+            "prompt": "",
+            "charResponses": ["There aren’t a lot of Black folks in Heyworth even today, and some people may think you do not belong there."]
+        },
+
+        "20": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                },
+
+                {
+                    "charImg": "characters/9JSZ1GFF9HJYNGQuvI2S",
+                    "charScreenSide": "right"
+                }
+            ],
+            "choices": {
+                "textChoices": [],
+                "results": [21],
+                "responses": []
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
+            "prompt": "",
+            "charResponses": ["Heyworth may not be as dangerous for Black people as it once was, but you still need to be very careful while you are there. Some people may think you do not belong."]
+        },
+
+        "21": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                },
+
+                {
+                    "charImg": "characters/9JSZ1GFF9HJYNGQuvI2S",
+                    "charScreenSide": "left"
+                }
+            ],
+            "choices": {
+                "textChoices": [],
+                "results": [22],
+                "responses": []
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/Outside%20Billy%20House.jpg?alt=media&token=5db90aee-6cb2-42c7-8a98-3764c4c0b725",
+            "prompt": "After a long drive, you finally arrive at Billy’s street. Across the house from Billy, an ‘All Lives Matter’ sign is firmly planted in their front yard. Thinking about the conversation you just had with your dad, you get a little bit nervous and wonder if you should even be at Billy’s house...",
+            "charResponses": []
+        },
+
+        "22": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                },
+
+                {
+                    "charImg": "characters/9JSZ1GFF9HJYNGQuvI2S",
+                    "charScreenSide": "left"
+                }
+            ],
+            "choices": {
+                "textChoices": [],
+                "results": [23],
+                "responses": []
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/Outside%20Billy%20House.jpg?alt=media&token=5db90aee-6cb2-42c7-8a98-3764c4c0b725",
+            "prompt": "Should you be at this place that doesn’t even make you feel safe? But Billy is so excited to see you, and you wonder if the fear is all in your head. He greets you and your dad as you pull up to his driveway. Your dad looks at you and says, “Remember what I told you. Now go and have fun!”...",
+            "charResponses": []
+        },
+
+        "23": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                }
+            ],
+            "choices": {
+                "textChoices": [],
+                "results": [24],
+                "responses": []
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/Outside%20Billy%20House.jpg?alt=media&token=5db90aee-6cb2-42c7-8a98-3764c4c0b725",
+            "prompt": "You get out of the car and wave your dad goodbye.",
+            "charResponses": []
+        },
+
+        "24": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                }
+            ],
+            "choices": {
+                "textChoices": ["Ask about neighbors...", "Ask about signs..."],
+                "results": [25, 26],
+                "responses": ["Do you know them? Are you friends with that family across the street?", "Those All Lives Matter signs are concerning to say the least. Yeah, all lives are important, but black lives are the ones in danger right now."]
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/Outside%20Billy%20House.jpg?alt=media&token=5db90aee-6cb2-42c7-8a98-3764c4c0b725",
+            "prompt": "",
+            "charResponses": ["What's up!"]
+        },
+
+        "25": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                },
+                {
+                    "charImg": "characters/AUVFdncz2vpuXCpw4uRa",
+                    "charScreenSide": "right"
+                }
+            ],
+            "choices": {
+                "textChoices": [],
+                "results": [27],
+                "responses": []
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/Outside%20Billy%20House.jpg?alt=media&token=5db90aee-6cb2-42c7-8a98-3764c4c0b725",
+            "prompt": "",
+            "charResponses": ["Yeah...we’re not super close, but we go to church together every Sunday. Why?"]
+        },
+
+        "26": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                },
+                {
+                    "charImg": "characters/AUVFdncz2vpuXCpw4uRa",
+                    "charScreenSide": "right"
+                }
+            ],
+            "choices": {
+                "textChoices": [],
+                "results": [28],
+                "responses": []
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/Outside%20Billy%20House.jpg?alt=media&token=5db90aee-6cb2-42c7-8a98-3764c4c0b725",
+            "prompt": "",
+            "charResponses": ["Um... cool. Yeah."]
+        },
+
+        "27": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                },
+                {
+                    "charImg": "characters/AUVFdncz2vpuXCpw4uRa",
+                    "charScreenSide": "right"
+                }
+            ],
+            "choices": {
+                "textChoices": [],
+                "results": [29],
+                "responses": []
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/Outside%20Billy%20House.jpg?alt=media&token=5db90aee-6cb2-42c7-8a98-3764c4c0b725",
+            "prompt": "",
+            "charResponses": ["Um... cool. Yeah."]
+        },
+
+        "28": {
+            "characters": [
+                {
+                    "charImg": "characters/epQ8q7ge1L7M6GdftoY2",
+                    "charScreenSide": "left"
+                },
+                {
+                    "charImg": "characters/AUVFdncz2vpuXCpw4uRa",
+                    "charScreenSide": "right"
+                }
+            ],
+            "choices": {
+                "textChoices": [],
+                "results": [30],
+                "responses": []
+            },
+            "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/Outside%20Billy%20House.jpg?alt=media&token=5db90aee-6cb2-42c7-8a98-3764c4c0b725",
+            "prompt": "",
+            "charResponses": ["Um... cool. Yeah."]
+        },
+
+
+
+    }
+}
+
