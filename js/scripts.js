@@ -277,8 +277,8 @@ function renderSceneCharacters(context, scene) {
     for (let i = 0; i < scene.characters.length; i++) {
         var charImage = resourceManager.get(characterImages[scene.characters[i].charImg.id]);
         var screenSide = scene.characters[i].charScreenSide;
-        let charWidth = charImage.width / 1.5;
-        let charHeight = charImage.height / 1.5;
+        let charWidth = charImage.width ;
+        let charHeight = charImage.height;
         //varShift represents the shift in the x coords on the screen depending on if char is on left or right of the screen
         // If no side is defined, the original value
         let varShift = charWidth/2; 
