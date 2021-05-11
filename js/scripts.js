@@ -206,22 +206,25 @@ function getLines(ctx, text, maxWidth) {
 }
 
 function renderScenePrompt(context, scene) {
-    context.font = '32px Quicksand';
-    let lines = getLines(context, scene.prompt, document.documentElement.clientWidth - 600);
+    context.font = '32px Avenir';
+    let maxWidth = document.documentElement.clientWidth * (.4);
+    let lines = getLines(context, scene.prompt, maxWidth);
     
-    x = 300;
-    y = 100;
+    x = document.documentElement.clientWidth / 2;
+    y = document.documentElement.clientHeight * 0.75;
 
     for (let i = 0; i < lines.length; i++) {
         let line = lines[i];
         context.fillStyle = 'black';
+        context.textAlign = 'center';
         context.fillText(line, x, y);
+        context.textAlign = 'left';
         y += 35;
     }
     
 }
 
-function paritionMessage(message, ctx) {
+function partitionMessage(message, context) {
     if (typeof message.text === 'undefined') {
         console.log(message);
         return;
@@ -230,10 +233,11 @@ function paritionMessage(message, ctx) {
     var words = message.text.split(" ");
     var allLines = [];
     var currentLine = words[0];
+    context.font = '20px Quicksand';
 
     for (var i = 1; i < words.length; i++) {
         var word = words[i];
-        var width = ctx.measureText(currentLine + " " + word).width;
+        var width = context.measureText(currentLine + " " + word).width;
         if (width < maxWidth) {
             currentLine += " " + word;
         } else {
@@ -244,27 +248,33 @@ function paritionMessage(message, ctx) {
     allLines.push(currentLine);
 
     // height of the first line, but they should all be the same
-    let textMetrics = ctx.measureText(currentLine[0]);
+    let textMetrics = context.measureText(currentLine[0]);
     let h = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
     return {lines: allLines, height: h}
 }
 
 function getMessageBoxBounds(context, msgContent, y, side) {
+    let textHeightMargin = 10;
     let margin = 25;
     if (side === 'left') {
-        var x0 = (document.documentElement.clientWidth * 0.25) - margin;
+        var x0 = (document.documentElement.clientWidth * 0.33) - margin;
     } else {
-        var x0 = (document.documentElement.clientWidth * 0.6) - margin;
+        var x0 = (document.documentElement.clientWidth * 0.66) - margin;
     }
 
     let y0 = y - margin - (msgContent.height / 2.0);
-    
+    context.font = '20px Quicksand';
     let maxLength = msgContent.lines.reduce((maxWidth, currMsg) => {
-        // Grabs the largest length in the lines and uses that as the x1.
+        // Grabs the largest length in the lines and uses that as the width.
         return Math.max(context.measureText(currMsg).width, maxWidth);
     }, 0)
     let w = maxLength + (margin * 2);
-    let h = (msgContent.height + margin) * msgContent.lines.length;
+    let h = ((msgContent.height + textHeightMargin) * msgContent.lines.length) - (2 * textHeightMargin) + (2 * margin);
+
+    if (side === 'right') {
+        x0 -= w;
+        x0 += 2 * margin;
+    }
 
     return {x0: x0, y0: y0, width: w, height: h};
 }
@@ -286,7 +296,6 @@ function renderSingularMessage(context, msgContent, y, i, side) {
     let lines = msgContent.lines;
     let height = msgContent.height;
     let margin = 10;
-    context.font = '20px Quicksand';
 
     // First draw the message background:
     renderMessageBackground(context, msgContent, y, i, side);
@@ -295,14 +304,18 @@ function renderSingularMessage(context, msgContent, y, i, side) {
     for (let j = 0; j < lines.length; j++) {
         let line = lines[j];
         if (side === "left") {
-            var x = document.documentElement.clientWidth * 0.25;
+            var x = document.documentElement.clientWidth * 0.33;
+            context.textAlign = 'left';
             context.fillStyle = 'black';
         } else {
-            var x = document.documentElement.clientWidth * 0.6;
+            var x = document.documentElement.clientWidth * 0.66;
+            context.textAlign = 'right';
             context.fillStyle = 'white';
         }
+        context.font = '20px Quicksand';
         context.fillText(line, x, y);
         y += height + margin;
+        context.textAlign = 'left';
     }
     y += 10;
 
@@ -311,26 +324,44 @@ function renderSingularMessage(context, msgContent, y, i, side) {
 function renderMessages(context) {
     if (sceneIterator.messageQueue.isEmpty()) { return; }
     var y = document.documentElement.clientHeight / 2.0; // halfway
+    let messageBoxMargin = 25;
     let margin = 20;
+    let textHeightMargin = 10;
     var iter = 0;
 
-    sceneIterator.messageQueue.forEach((message) => { // This is done FIFO.
-        let result = paritionMessage(message, context);
+    for (let i = sceneIterator.messageQueue.arr.length - 1; i > 0; i--) {
+        let message = sceneIterator.messageQueue.arr[i];
+        let nextMessage = sceneIterator.messageQueue.arr[i - 1];
+        let result = partitionMessage(message, context);
+        let nextResult = partitionMessage(nextMessage, context);
         
         renderSingularMessage(context, result, y, iter, message.side);
-        y -= result.height + margin;
+        nextMessageLength = nextResult.lines.length;
+        let h = ((result.height + textHeightMargin) * nextMessageLength) - (2 * textHeightMargin) + (2 * messageBoxMargin);
+        y -= (h + (margin * 2));
         iter++;
-        
-    });
+    }
+
+    let message = sceneIterator.messageQueue.arr[0];
+    let result = partitionMessage(message, context);
+    renderSingularMessage(context, result, y, iter, message.side)
 
 }
 
+function resetForwardButtonLocation() {
+    forwardButtonLocation.cx = -1;
+    forwardButtonLocation.cy = -1;
+    forwardButtonLocation.r = -1;
+}
+
 function renderSceneButtons(context, scene) {
-    if (scene.choices.responses.length === 0) {
+    if (scene.choices.choiceTexts.length === 0 || 
+        scene.choices.responses.length === 0) {
         // Only would have a forward button, no choices:
         renderForwardButton(context);
     }
     else {
+        resetForwardButtonLocation();
         renderChoiceButtons(context, scene);
     }
 
@@ -350,7 +381,7 @@ function renderSingularChoiceButton(context, response, choiceNum) {
     context.fillStyle = 'rgba(255, 255, 255, 0.85)';
     context.shadowBlur = 5;
     context.shadowColor = 'black';
-    roundRect(context, x0, y0, width, height, 5, 'white', 0);
+    roundRect(context, x0, y0, width, height, 20, 'white', 0);
     context.shadowBlur = 0;
     context.fillStyle = 'black';  
     context.fillText(response, x0 + margin, 
@@ -360,7 +391,7 @@ function renderSingularChoiceButton(context, response, choiceNum) {
 function updateSceneButtonLocations(scene, context) {
     context.font = "16px Quicksand";
     let margin = 15;
-    let height = 50;
+    let height = 50; // This might have to change to not be hard coded.
 
     /* First, get the length of the entire number of responses, and then 
        half of that width, which will be how much to subtract off of the
@@ -393,7 +424,7 @@ function updateSceneButtonLocations(scene, context) {
         context.font = "16px Quicksand";
         let width = context.measureText(response).width + (margin * 2);
         let x0 = baseX + margin;
-        let y0 = document.documentElement.clientHeight * .8;
+        let y0 = document.documentElement.clientHeight * .85;
 
         sceneButtonLocations[i] = {
             x0: x0,
@@ -410,7 +441,6 @@ function updateSceneButtonLocations(scene, context) {
 
 function renderChoiceButtons(context, scene) {
     updateSceneButtonLocations(scene, context);
-
     var responseCount = scene.choices.responses.length;
     for (let i = 0; i < responseCount; i++) {
         var response = scene.choices.responses[i];
@@ -425,14 +455,8 @@ function renderChoiceButtons(context, scene) {
 function renderSceneCharacters(context, scene) {
     for (let i = 0; i < scene.characters.length; i++) {
         var charImage = resourceManager.get(characterImages[scene.characters[i].charImg.id]);
-<<<<<<< HEAD
-        let charWidth = charImage.width / 2.0;
-        let charHeight = charImage.height / 2.0;
-        let x0 = document.documentElement.clientWidth / 2 - charWidth / 2;
-        let y0 = document.documentElement.clientHeight / 3;
-=======
         var screenSide = scene.characters[i].charScreenSide;
-        let charWidth = charImage.width ;
+        let charWidth = charImage.width;
         let charHeight = charImage.height;
         //varShift represents the shift in the x coords on the screen depending on if char is on left or right of the screen
         // If no side is defined, the original value
@@ -445,7 +469,6 @@ function renderSceneCharacters(context, scene) {
         }; 
         let x0 = document.documentElement.clientWidth / 2 - varShift; 
         let y0 = document.documentElement.clientHeight / 4;
->>>>>>> main
         context.drawImage(charImage, x0, y0, charWidth, charHeight);
         renderScenePrompt(context, scene);
     }
@@ -455,8 +478,9 @@ function renderSceneBg(context, scene) {
     var bgImage = new Image();
     bgImage.addEventListener('load', () => {
         let w = document.documentElement.clientWidth;
+        let canvasHeight = document.documentElement.clientHeight;
         let h = w * (9.0 / 16.0); // Maintain full screen proportions
-        context.clearRect(0, 0, w, h);
+        context.clearRect(0, 0, w, canvasHeight);
         context.drawImage(bgImage, 0, 0, w, h);
         renderSceneCharacters(context, scene);
     }, false);
@@ -469,7 +493,7 @@ function renderForwardButton(context) {
     let y = document.documentElement.clientHeight * (9.0 / 10.0);
     let radius = 20;
 
-    context.fillStyle = 'white';
+    context.fillStyle = 'black';
     context.shadowBlur = 5;
     context.shadowColor = 'black';
     context.beginPath();
@@ -477,7 +501,8 @@ function renderForwardButton(context) {
     context.closePath();
     context.fill();
     context.shadowBlur = 0;
-    context.stroke();
+
+    drawLineArrow(context, x - radius + 5, y, x + radius - 5, y, 'white')
 
     forwardButtonLocation = {
         cx: x,
@@ -491,7 +516,7 @@ function renderBackButton(context) {
     let y = document.documentElement.clientHeight * (9.0 / 10.0);
     let radius = 20;
 
-    context.fillStyle = 'white';
+    context.fillStyle = 'black';
     context.shadowBlur = 5;
     context.shadowColor = 'black';
     context.beginPath();
@@ -499,6 +524,8 @@ function renderBackButton(context) {
     context.closePath();
     context.fill();
     context.shadowBlur = 0;
+
+    drawLineArrow(context, x + radius - 5, y, x - radius + 5, y, 'white');
 
     backButtonLocation = {
         cx: x,
@@ -546,6 +573,9 @@ function clickedBackButton(mousePosition) {
 }
 
 function clickedForwardButton(mousePosition) {
+    if (forwardButtonLocation == { cx: -1, cy: -1, r: -1 }) {
+        return false;
+    }
     let distance = ((mousePosition.x - forwardButtonLocation.cx) ** 2 + 
     (mousePosition.y - forwardButtonLocation.cy) ** 2) ** 0.5
     return distance < forwardButtonLocation.r;
@@ -555,6 +585,7 @@ function handleMousePressed(mousePosition) {
     if (gameStates.currState == 'splash') { return }
     else if (gameStates.currState === 'inGame') {
         let sceneClickResult = clickedStoryButton(mousePosition);
+        console.log(mousePosition);
 
         if (sceneClickResult.wasClicked) {
             let results = sceneIterator.nextScenes();
@@ -658,7 +689,7 @@ function roundRectMsg(ctx, x, y, width, height, radius, fill, stroke, side, opac
     ctx.beginPath();
     ctx.globalAlpha = opacity;
     ctx.shadowBlur = 10;
-    ctx.shadowColor = 'black';
+    ctx.shadowColor = `rgba(0, 0, 0, ${opacity})`;
     ctx.moveTo(x + radius.tl, y);
     ctx.lineTo(x + width - radius.tr, y);
     ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
@@ -678,6 +709,41 @@ function roundRectMsg(ctx, x, y, width, height, radius, fill, stroke, side, opac
     }
 
     ctx.shadowBlur = 0;
+    ctx.shadowColor = 'black';
     ctx.globalAlpha = 1.0;
     
+}
+
+/* CITATION: https://www.programmersought.com/article/16051099203/ */
+function drawLineArrow(context, fromX, fromY, toX, toY, color) {
+    var headlen = 10; // Customize the length of the arrow line
+    var theta = 45; // Customize the angle between the arrow line and the line, personally feel that 45 ° is just right
+    var arrowX, arrowY;//Arrow line end point coordinates
+    // Calculate the angle of each angle and the corresponding arrow end point
+    var angle = Math.atan2(fromY - toY, fromX - toX) * 180 / Math.PI;
+    var angle1 = (angle + theta) * Math.PI / 180;
+    var angle2 = (angle - theta) * Math.PI / 180;
+    var topX = headlen * Math.cos(angle1);
+    var topY = headlen * Math.sin(angle1);
+    var botX = headlen * Math.cos(angle2);
+    var botY = headlen * Math.sin(angle2);
+    context.beginPath();
+    context.lineWidth = 3;
+    // draw a straight line
+    context.moveTo(fromX, fromY);
+    context.lineTo(toX, toY);
+
+    arrowX = toX + topX;
+    arrowY = toY + topY;
+    //Draw the upper arrow line
+    context.moveTo(arrowX, arrowY);
+    context.lineTo(toX, toY);
+
+    arrowX = toX + botX;
+    arrowY = toY + botY;
+    //Draw the arrow line below
+    context.lineTo(arrowX, arrowY);
+    
+    context.strokeStyle = color;
+    context.stroke();
 }

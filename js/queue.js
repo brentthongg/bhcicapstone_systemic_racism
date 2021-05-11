@@ -19,7 +19,7 @@ class Queue {
     }
 
     emptyContents() {
-        this.arr = [];
+        this.arr.push();
     }
 
     pop() { // This isn't technically a queue method but it's needed.

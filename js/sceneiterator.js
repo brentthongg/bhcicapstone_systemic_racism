@@ -26,38 +26,32 @@ class SceneIterator {
         }
     }
 
-    next(sceneId = -1, choice=-1) {
+    next(sceneId = -1, choice = -1) {
         if (sceneId === -1) {
             sceneId = this.story.scenes[this.curr].choices.results[0];
-        } 
+        }
+
+        var currScene = this.story.scenes[this.curr];
+        var textMessage = {
+            text: "",
+            side: ""
+        };
         if (choice !== -1) {
-            var textMessage = this.story.scenes[sceneId].textMessage;
-            if (textMessage === "" || textMessage == null) {
-                // this.messageQueue.emptyContents();
-                textMessage = this.story.scenes[this.curr].choices.responses[choice];
-                if (!textMessage) {
-                    this.messageQueue.emptyContents();
-                }
-            }
-            else {
-                this.messageQueue.enqueue({
-                    text: textMessage,
-                    side: this.story.scenes[sceneId].side
-                });
-    
-                // Some scenes have multiple messages from the other character
-                // in a row, so we represent this as a list and enqueue all of them
-                // into the message queue. 
-                if (this.story.scenes[sceneId].charResponses && 
-                    this.story.scenes[sceneId].charResponses.length > 0) {
-                        this.story.scenes[sceneId].charResponses.forEach((e) => {
-                            this.messageQueue.enqueue({
-                                text: e,
-                                side: 'right'
-                            })
-                        });
-                    }
-            }
+            textMessage.text = currScene.choices.responses[choice];
+            textMessage.side = "left";
+        } else if (currScene.charResponses.length > 0) {
+            textMessage.text = currScene.charResponses[0];
+            textMessage.side = "right";
+        } else if (currScene.choices.choiceTexts.length === 0 && 
+                   currScene.choices.responses.length > 0) {
+                    textMessage.text = currScene.choices.responses[0];
+                    textMessage.side = "left";
+        }
+
+        if (textMessage.text.length === 0) { // no messages, reset
+            this.messageQueue.emptyContents();
+        } else {
+            this.messageQueue.enqueue(textMessage);
         }
 
         this.sceneStack.push(this.curr);
@@ -68,7 +62,9 @@ class SceneIterator {
     back() {
         if (this.sceneStack.length > 0) {
             let sceneId = this.sceneStack.pop();
-            this.messageQueue.pop();
+            if (!this.messageQueue.isEmpty()) {
+                this.messageQueue.pop();
+            }
             if (sceneId in this.story.scenes) {
                 this.curr = sceneId;
                 return this.get();
