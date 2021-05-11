@@ -2,14 +2,12 @@
    to draw elements onto the screen. */
 
 /* VARIABLES */
-// Holds all the scenes viewed so far so player can go back and forth.
-var sceneStack = [];
-
 // Game variables
 var lastTime;
 var totalTime = 0;
 var startTime;
 var sceneIterator;
+var sessionData;
 
 // Store the locations in case they change due to resize.
 var backButtonLocation = {
@@ -89,6 +87,16 @@ function splashScreenDraw(context) {
         splashOverlayDiv.appendChild(storyBtn);
     }
 
+    // Comment out these lines to get rid of the sessionID appearing at the beginning
+    // of the game:
+    let sessionText = document.createElement('p');
+    let sessionSpanText = document.createElement('span');
+    sessionSpanText.classList.add('highlight');
+    sessionSpanText.innerText = `Session ID: ${sessionStorage.getItem('sessionId')}`;
+    sessionText.appendChild(sessionSpanText);
+    sessionText.id = "session-text";
+    splashOverlayDiv.appendChild(sessionText);
+
     document.getElementById('wrapper').appendChild(splashOverlayDiv);
 }
 
@@ -96,6 +104,7 @@ function splashScreenDraw(context) {
 // is the desired functionality.
 function setupCanvas(context) {
     var startTime = Date.now();
+    sessionData["startTime"] = startTime;
     // Other canvas set up for data collection...
 }
 
@@ -111,17 +120,18 @@ function initCanvas() {
     var canvas = document.createElement('canvas');
     canvas.id = 'main-canvas';
     resizeCanvas(canvas);
-    canvas.addEventListener('click', (event) => {
-        let mousePosition = getMousePosition(canvas, event);
-        handleMousePressed(mousePosition);
-    }, false);
     document.getElementById('wrapper').appendChild(canvas);
+    sessionData = {};
 
     // Add resizeCanvas function to resize so that it changes dynamically:
     window.onresize = () => resizeCanvas(canvas);
     // Get context to draw onto canvas
     if (canvas.getContext) {
         var context = canvas.getContext('2d');
+        canvas.addEventListener('click', (event) => {
+            let mousePosition = getMousePosition(canvas, event);
+            handleMousePressed(mousePosition, context);
+        }, false);
         setupCanvas(context);
         gameStates.splashState(context);
     } else {
@@ -154,7 +164,7 @@ function mainLoop(context) {
     if (gameStates.currState === 'inGame') {
         render(context);
     }
-    else {
+    else if (gameStates.currState === 'splash') {
         splashScreenRender(context);
     }
 
@@ -172,7 +182,8 @@ function update(dt) {
 
 // The main draw function
 function render(context) {
-    renderScene(context)
+    renderScene(context);
+    renderMessages(context);
 }
 
 $(document).ready(function() {
@@ -183,7 +194,6 @@ $(document).ready(function() {
 /* HELPER RENDER FUNCTIONS */
 function renderScene(context) {
     let scene = sceneIterator.get();
-    // console.log(scene);
     renderSceneBg(context, scene);
     renderSceneButtons(context, scene);
 }
@@ -208,28 +218,190 @@ function getLines(ctx, text, maxWidth) {
     return lines;
 }
 
-function renderScenePrompt(context, scene) {
-    context.font = '32px Quicksand';
-    let lines = getLines(context, scene.prompt, document.documentElement.clientWidth - 600);
+function renderScenePromptBackground(context, scene, lines, y) {
+    if (scene.prompt.length == 0) {
+        return;
+    }
+    let textHeightMargin = 35; // height + margin
+    let margin = 20;
+
+    let textMetrics = context.measureText(lines[0]);
+    let h = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
+    let boxHeight = ((h + textHeightMargin) * lines.length) - (2 * textHeightMargin) + (2 * margin);
+    let boxWidth = document.documentElement.clientWidth * .8;
+    let y0 = y - margin - (h / 2.0)
     
-    x = 300;
-    y = 100;
+    roundRect(context, document.documentElement.clientWidth * .1, y0, boxWidth, 
+              boxHeight, 0, 'rgba(0, 0, 0, 0.5)', 0);
+
+}
+
+function renderScenePrompt(context, scene) {
+    let textHeightMargin = 35;
+    context.font = '32px Avenir';
+    let maxWidth = document.documentElement.clientWidth * (.4);
+    let lines = getLines(context, scene.prompt, maxWidth);
+    
+    
+    x = document.documentElement.clientWidth / 2;
+    if (sceneIterator.messageQueue.isEmpty()) {
+        y = document.documentElement.clientHeight * 0.1;
+    }
+    else {
+        y = document.documentElement.clientHeight * 0.75;
+    }
+    // renderScenePromptBackground(context, scene, lines, y);
 
     for (let i = 0; i < lines.length; i++) {
         let line = lines[i];
         context.fillStyle = 'black';
+        context.textAlign = 'center';
         context.fillText(line, x, y);
-        y += 35;
+        context.textAlign = 'left';
+        y += textHeightMargin;
     }
+    context.fillStyle = 'black';
     
 }
 
+function partitionMessage(message, context) {
+    if (typeof message.text === 'undefined') {
+        console.log(message);
+        return;
+    }
+    let maxWidth = document.documentElement.clientWidth / 4.0;
+    var words = message.text.split(" ");
+    var allLines = [];
+    var currentLine = words[0];
+    context.font = '20px Quicksand';
+
+    for (var i = 1; i < words.length; i++) {
+        var word = words[i];
+        var width = context.measureText(currentLine + " " + word).width;
+        if (width < maxWidth) {
+            currentLine += " " + word;
+        } else {
+            allLines.push(currentLine);
+            currentLine = word;
+        }
+    }
+    allLines.push(currentLine);
+
+    // height of the first line, but they should all be the same
+    let textMetrics = context.measureText(currentLine[0]);
+    let h = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
+    return {lines: allLines, height: h}
+}
+
+function getMessageBoxBounds(context, msgContent, y, side) {
+    let textHeightMargin = 10;
+    let margin = 25;
+    if (side === 'left') {
+        var x0 = (document.documentElement.clientWidth * 0.33) - margin;
+    } else {
+        var x0 = (document.documentElement.clientWidth * 0.66) - margin;
+    }
+
+    let y0 = y - margin - (msgContent.height / 2.0);
+    context.font = '20px Quicksand';
+    let maxLength = msgContent.lines.reduce((maxWidth, currMsg) => {
+        // Grabs the largest length in the lines and uses that as the width.
+        return Math.max(context.measureText(currMsg).width, maxWidth);
+    }, 0)
+    let w = maxLength + (margin * 2);
+    let h = ((msgContent.height + textHeightMargin) * msgContent.lines.length) - (2 * textHeightMargin) + (2 * margin);
+
+    if (side === 'right') {
+        x0 -= w;
+        x0 += 2 * margin;
+    }
+
+    return {x0: x0, y0: y0, width: w, height: h};
+}
+
+function renderMessageBackground(context, msgContent, y, i, side) {
+    let bounds = getMessageBoxBounds(context, msgContent, y, side);
+    let r = 15;
+    let fill = (side === 'left') ? 'white' : 'black';
+    let stroke = 0;
+    
+    let opacity = getMessageOpacity(i);
+    
+    roundRectMsg(context, bounds.x0, bounds.y0, bounds.width, bounds.height, 
+              r, fill, stroke, side, opacity);
+    
+}
+
+function renderSingularMessage(context, msgContent, y, i, side) {
+    let lines = msgContent.lines;
+    let height = msgContent.height;
+    let margin = 10;
+
+    // First draw the message background:
+    renderMessageBackground(context, msgContent, y, i, side);
+
+    // Then write the text:
+    for (let j = 0; j < lines.length; j++) {
+        let line = lines[j];
+        if (side === "left") {
+            var x = document.documentElement.clientWidth * 0.33;
+            context.textAlign = 'left';
+            context.fillStyle = 'black';
+        } else {
+            var x = document.documentElement.clientWidth * 0.66;
+            context.textAlign = 'right';
+            context.fillStyle = 'white';
+        }
+        context.font = '20px Quicksand';
+        context.fillText(line, x, y);
+        y += height + margin;
+        context.textAlign = 'left';
+    }
+    y += margin;
+
+}
+
+function renderMessages(context) {
+    if (sceneIterator.messageQueue.isEmpty()) { return; }
+    var y = document.documentElement.clientHeight / 2.0; // halfway
+    let messageBoxMargin = 25;
+    let margin = 20;
+    let textHeightMargin = 10;
+    var iter = 0;
+
+    for (let i = sceneIterator.messageQueue.arr.length - 1; i > 0; i--) {
+        let message = sceneIterator.messageQueue.arr[i];
+        let nextMessage = sceneIterator.messageQueue.arr[i - 1];
+        let result = partitionMessage(message, context);
+        let nextResult = partitionMessage(nextMessage, context);
+        
+        renderSingularMessage(context, result, y, iter, message.side);
+        nextMessageLength = nextResult.lines.length;
+        let h = ((result.height + textHeightMargin) * nextMessageLength) - (2 * textHeightMargin) + (2 * messageBoxMargin);
+        y -= (h + (margin * 2));
+        iter++;
+    }
+
+    let message = sceneIterator.messageQueue.arr[0];
+    let result = partitionMessage(message, context);
+    renderSingularMessage(context, result, y, iter, message.side)
+
+}
+
+function resetForwardButtonLocation() {
+    forwardButtonLocation.cx = -1;
+    forwardButtonLocation.cy = -1;
+    forwardButtonLocation.r = -1;
+}
+
 function renderSceneButtons(context, scene) {
-    if (scene.choices.responses.length === 0) {
+    if (scene.choices.choiceTexts.length === 0 || 
+        scene.choices.responses.length === 0) {
         // Only would have a forward button, no choices:
         renderForwardButton(context);
     }
     else {
+        resetForwardButtonLocation();
         renderChoiceButtons(context, scene);
     }
 
@@ -239,37 +411,84 @@ function renderSceneButtons(context, scene) {
 
 function renderSingularChoiceButton(context, response, choiceNum) {
     context.font = '16px Quicksand';
-    let margin = 20; 
-    let width = context.measureText(response).width + (margin * 2);
-    let height = 50;
+    let margin = 15; 
 
-    let x0 = (document.documentElement.clientWidth / 2) - (width / 2);
-    let y0 = ((document.documentElement.clientHeight * .75) + 
-              (choiceNum * (height + margin)));
-    
+    let x0 = sceneButtonLocations[choiceNum].x0;
+    let y0 = sceneButtonLocations[choiceNum].y0;
+    let width = sceneButtonLocations[choiceNum].width;
+    let height = sceneButtonLocations[choiceNum].height;
     
     context.fillStyle = 'rgba(255, 255, 255, 0.85)';
     context.shadowBlur = 5;
     context.shadowColor = 'black';
-    roundRect(context, x0, y0, width, height, 5, 'white', 0);
+    roundRect(context, x0, y0, width, height, 20, 'white', 0);
     context.shadowBlur = 0;
     context.fillStyle = 'black';  
     context.fillText(response, x0 + margin, 
                      y0 + (margin / 4.0) + (height / 2.0));
+}
 
-    // Update
-    sceneButtonLocations[choiceNum] = {
-        x0: x0,
-        y0: y0,
-        width: width,
-        height: height 
-    };
+function updateSceneButtonLocations(scene, context) {
+    context.font = "16px Quicksand";
+    let margin = 15;
+    let height = 50; // This might have to change to not be hard coded.
+
+    /* First, get the length of the entire number of responses, and then 
+       half of that width, which will be how much to subtract off of the
+       middle of the screen to get to the starting point. */
+    var totalWidth = 0;
+    for (let i = 0; i < scene.choices.responses.length; i++) {
+        if (scene.choices.choiceTexts) {
+            response = scene.choices.choiceTexts[i];
+        } else {
+            response = scene.choices.responses[i];
+        }
+
+        totalWidth += context.measureText(response).width;
+        totalWidth += (margin * 2);
+        // Don't add the margin to the last response: 
+        if (i + 1 !== scene.choices.responses.length) {
+            totalWidth += margin;
+        }
+    }
+    var baseX = (document.documentElement.clientWidth / 2.0) - (totalWidth / 2.0);
+
+    for (let i = 0; i < scene.choices.responses.length; i++) {
+        var response;
+        if (scene.choices.choiceTexts) {
+            response = scene.choices.choiceTexts[i];
+        } else {
+            response = scene.choices.responses[i];
+        }
+
+        context.font = "16px Quicksand";
+        let width = context.measureText(response).width + (margin * 2);
+        let x0 = baseX + margin;
+        let y0 = document.documentElement.clientHeight * .85;
+
+        sceneButtonLocations[i] = {
+            x0: x0,
+            y0: y0,
+            width: width,
+            height: height
+        };
+
+        baseX += width + margin;
+
+    }
+
 }
 
 function renderChoiceButtons(context, scene) {
-    for (let i = 0; i < scene.choices.responses.length; i++) {
-        let response = scene.choices.responses[i];
-        renderSingularChoiceButton(context, response, i);
+    updateSceneButtonLocations(scene, context);
+    var responseCount = scene.choices.responses.length;
+    for (let i = 0; i < responseCount; i++) {
+        var response = scene.choices.responses[i];
+        if (scene.choices.choiceTexts) {
+            response = scene.choices.choiceTexts[i];
+        }
+
+        renderSingularChoiceButton(context, response, i, responseCount);
     }
 }
 
@@ -277,7 +496,7 @@ function renderSceneCharacters(context, scene) {
     for (let i = 0; i < scene.characters.length; i++) {
         var charImage = resourceManager.get(characterImages[scene.characters[i].charImg.id]);
         var screenSide = scene.characters[i].charScreenSide;
-        let charWidth = charImage.width ;
+        let charWidth = charImage.width;
         let charHeight = charImage.height;
         //varShift represents the shift in the x coords on the screen depending on if char is on left or right of the screen
         // If no side is defined, the original value
@@ -289,7 +508,7 @@ function renderSceneCharacters(context, scene) {
             varShift = -1 * (charWidth/2); 
         }; 
         let x0 = document.documentElement.clientWidth / 2 - varShift; 
-        let y0 = document.documentElement.clientHeight / 4;
+        let y0 = document.documentElement.clientHeight - charHeight;
         context.drawImage(charImage, x0, y0, charWidth, charHeight);
         renderScenePrompt(context, scene);
     }
@@ -299,8 +518,9 @@ function renderSceneBg(context, scene) {
     var bgImage = new Image();
     bgImage.addEventListener('load', () => {
         let w = document.documentElement.clientWidth;
+        let canvasHeight = document.documentElement.clientHeight;
         let h = w * (9.0 / 16.0); // Maintain full screen proportions
-        context.clearRect(0, 0, w, h);
+        context.clearRect(0, 0, w, canvasHeight);
         context.drawImage(bgImage, 0, 0, w, h);
         renderSceneCharacters(context, scene);
     }, false);
@@ -313,7 +533,7 @@ function renderForwardButton(context) {
     let y = document.documentElement.clientHeight * (9.0 / 10.0);
     let radius = 20;
 
-    context.fillStyle = 'white';
+    context.fillStyle = 'black';
     context.shadowBlur = 5;
     context.shadowColor = 'black';
     context.beginPath();
@@ -321,7 +541,8 @@ function renderForwardButton(context) {
     context.closePath();
     context.fill();
     context.shadowBlur = 0;
-    context.stroke();
+
+    drawLineArrow(context, x - radius + 5, y, x + radius - 5, y, 'white')
 
     forwardButtonLocation = {
         cx: x,
@@ -335,7 +556,7 @@ function renderBackButton(context) {
     let y = document.documentElement.clientHeight * (9.0 / 10.0);
     let radius = 20;
 
-    context.fillStyle = 'white';
+    context.fillStyle = 'black';
     context.shadowBlur = 5;
     context.shadowColor = 'black';
     context.beginPath();
@@ -343,6 +564,8 @@ function renderBackButton(context) {
     context.closePath();
     context.fill();
     context.shadowBlur = 0;
+
+    drawLineArrow(context, x + radius - 5, y, x - radius + 5, y, 'white');
 
     backButtonLocation = {
         cx: x,
@@ -390,29 +613,39 @@ function clickedBackButton(mousePosition) {
 }
 
 function clickedForwardButton(mousePosition) {
+    if (forwardButtonLocation == { cx: -1, cy: -1, r: -1 }) {
+        return false;
+    }
     let distance = ((mousePosition.x - forwardButtonLocation.cx) ** 2 + 
     (mousePosition.y - forwardButtonLocation.cy) ** 2) ** 0.5
     return distance < forwardButtonLocation.r;
 }
 
-function handleMousePressed(mousePosition) {
+function handleMousePressed(mousePosition, context) {
     if (gameStates.currState == 'splash') { return }
     else if (gameStates.currState === 'inGame') {
         let sceneClickResult = clickedStoryButton(mousePosition);
+        console.log(mousePosition);
 
         if (sceneClickResult.wasClicked) {
+            sessionData[Date.now().toString()] = sceneIterator.nextChoiceTexts()[sceneClickResult.button];
             let results = sceneIterator.nextScenes();
-            sceneIterator.next(results[sceneClickResult.button]);
+            sceneIterator.next(results[sceneClickResult.button], sceneClickResult.button);
         }
 
         else if (clickedBackButton(mousePosition)) {
+            sessionData[Date.now().toString()] = "back";
             sceneIterator.back();
-            console.log(sceneIterator.curr);
             return;
         }
 
         else if (clickedForwardButton(mousePosition)) {
-            sceneIterator.next();
+            sessionData[Date.now().toString()] = "forward";
+            let nextScene = sceneIterator.next();
+            if (nextScene == null) { // end of the game
+                sessionData['endTime'] = Date.now();
+                writeSession(sessionData); // Finishes session and restarts game
+            }
             return;
         }
     }
@@ -435,9 +668,15 @@ function createStoryButton(name, context) {
     return newBtn;
 }
 
+function getMessageOpacity(i) {   
+    let maxMessageCount = 4;  
+    let maxOpacity = 1;
+    return maxOpacity - maxOpacity * (i / maxMessageCount);
+}
+
 // CITATION:
 // https://stackoverflow.com/questions/1255512/how-to-draw-a-rounded-rectangle-using-html-canvas
-function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+function roundRect(ctx, x, y, width, height, radius, fill, stroke, opacity=1.0) {
     if (typeof stroke === 'undefined') {
       stroke = true;
     }
@@ -464,11 +703,96 @@ function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
     ctx.quadraticCurveTo(x, y, x + radius.tl, y);
     ctx.closePath();
     if (fill) {
-      ctx.fill();
+        ctx.fillStyle = fill;
+        ctx.fill();
+        ctx.fillStyle = 'black';
     }
     if (stroke) {
       ctx.stroke();
     }
   
-  }
-  
+}
+
+function roundRectMsg(ctx, x, y, width, height, radius, fill, stroke, side, opacity=1.0) {
+    if (typeof stroke === 'undefined') {
+        stroke = true;
+    }
+    
+    if (typeof radius === 'undefined') {
+        radius = 5;
+    }
+    
+    var blRadius = radius;
+    var brRadius = radius;
+    if (typeof radius === 'number') {
+        if (side === 'left') { blRadius = 0; } 
+        else { brRadius = 0; }
+        radius = {tl: radius, tr: radius, br: brRadius, bl: blRadius};
+    } else {
+        var defaultRadius = {tl: 0, tr: 0, br: 0, bl: bl};
+        for (var side in defaultRadius) {
+            radius[side] = radius[side] || defaultRadius[side];
+        }
+    }
+
+    ctx.beginPath();
+    ctx.globalAlpha = opacity;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = `rgba(0, 0, 0, ${opacity})`;
+    ctx.moveTo(x + radius.tl, y);
+    ctx.lineTo(x + width - radius.tr, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+    ctx.lineTo(x + width, y + height - radius.br);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+    ctx.lineTo(x + radius.bl, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+    ctx.lineTo(x, y + radius.tl);
+    ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+    ctx.closePath();
+    if (fill) {
+        ctx.fillStyle = fill;
+        ctx.fill();
+    }
+    if (stroke) {
+        ctx.stroke();
+    }
+
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'black';
+    ctx.globalAlpha = 1.0;
+    
+}
+
+/* CITATION: https://www.programmersought.com/article/16051099203/ */
+function drawLineArrow(context, fromX, fromY, toX, toY, color) {
+    var headlen = 10; // Customize the length of the arrow line
+    var theta = 45; // Customize the angle between the arrow line and the line, personally feel that 45 ° is just right
+    var arrowX, arrowY;//Arrow line end point coordinates
+    // Calculate the angle of each angle and the corresponding arrow end point
+    var angle = Math.atan2(fromY - toY, fromX - toX) * 180 / Math.PI;
+    var angle1 = (angle + theta) * Math.PI / 180;
+    var angle2 = (angle - theta) * Math.PI / 180;
+    var topX = headlen * Math.cos(angle1);
+    var topY = headlen * Math.sin(angle1);
+    var botX = headlen * Math.cos(angle2);
+    var botY = headlen * Math.sin(angle2);
+    context.beginPath();
+    context.lineWidth = 3;
+    // draw a straight line
+    context.moveTo(fromX, fromY);
+    context.lineTo(toX, toY);
+
+    arrowX = toX + topX;
+    arrowY = toY + topY;
+    //Draw the upper arrow line
+    context.moveTo(arrowX, arrowY);
+    context.lineTo(toX, toY);
+
+    arrowX = toX + botX;
+    arrowY = toY + botY;
+    //Draw the arrow line below
+    context.lineTo(arrowX, arrowY);
+    
+    context.strokeStyle = color;
+    context.stroke();
+}
