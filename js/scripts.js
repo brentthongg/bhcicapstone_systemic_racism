@@ -129,6 +129,13 @@ function initCanvas() {
     }
 }
 
+/*indow.onload = function (){
+    // The page is completely loaded now
+    // You can reference the image element
+    let img = document.getElementById("myImage");
+    context.drawImage(img, 10, 30);
+} */
+
 function gameMainLoop(context, storyId) {
     var storyData;
     for (let i = 0; i < stories.length; i++) {
@@ -143,7 +150,7 @@ function gameMainLoop(context, storyId) {
     sceneIterator = new SceneIterator(storyData);
 
     lastTime = Date.now();
-    mainLoop(context);
+    mainLoop(context)
 }
 
 function mainLoop(context) {
@@ -165,6 +172,12 @@ function mainLoop(context) {
 
 function update(dt) {
     totalTime += dt;
+    if (typeof charSprite != "undefined") {
+        let charImg = charSprite.spritesheet; 
+        charImg.addEventListener('load', () => {
+            charSprite.update(); 
+        }, false);
+    }
     // Implement this function if we're doing sprites:
     // updateSpriteEmotion();
 }
@@ -186,6 +199,12 @@ function renderScene(context) {
     // console.log(scene);
     renderSceneBg(context, scene);
     renderSceneButtons(context, scene);
+    if (typeof charSprite != "undefined") {
+        let charImg = charSprite.spritesheet; 
+        charImg.addEventListener('load', () => {
+            charSprite.draw(context); 
+        }, false);
+    }
 }
 
 // https://stackoverflow.com/questions/2936112/text-wrap-in-a-canvas-element
@@ -273,9 +292,56 @@ function renderChoiceButtons(context, scene) {
     }
 }
 
+function spriteObject(spritesheet, x, y, timePerFrame, numberOfFrames) {
+    this.spritesheet = spritesheet;             //the spritesheet image
+    this.x = x;                                 //the x coordinate of the object
+    this.y = y; 
+    this.width = spritesheet.height; 
+    this.height = spritesheet.width;                             
+    //this.width = width;                         //width of spritesheet
+    //this.height = height;                       //height of spritesheet
+    this.timePerFrame = timePerFrame;           //time in(ms) given to each frame
+    //this.numberOfFrames = (width/numberOfFramesPerRow) * (height)
+    this.numberOfFrames = numberOfFrames || 1;  //number of frames(sprites) in the spritesheet, default 1
+
+    //current frame index pointer
+    this.frameIndex = 0;
+
+    //time the frame index was last updated
+    this.lastUpdate = Date.now();
+
+    //to update
+    this.update = function() {
+        if(Date.now() - this.lastUpdate >= this.timePerFrame) {
+            this.frameIndex++;
+            if(this.frameIndex >= this.numberOfFrames) {
+                this.frameIndex = 0;
+            }
+            this.lastUpdate = Date.now();
+        }
+    }
+
+    //to draw on the canvas, parameter is the context of the canvas to be drawn on
+    this.draw = function(context) {
+        context.drawImage(this.spritesheet,
+                          this.frameIndex*this.width/this.numberOfFrames,
+                          0,
+                          this.width/this.numberOfFrames,
+                          this.height,
+                          x,
+                          y,
+                          this.width/this.numberOfFrames,
+                          this.height);
+    }
+} 
+
 function renderSceneCharacters(context, scene) {
     for (let i = 0; i < scene.characters.length; i++) {
-        var charImage = resourceManager.get(characterImages[scene.characters[i].charImg.id]);
+        //Put in CharEmotion somehow
+        var charLink = scene.characters[i].charImg.id; 
+        var charEmotion = scene.characters[i].charEmotion; 
+        var charImage = resourceManager.get(characterImages[charLink][charEmotion]);
+        //console.log(characterImages[charLink][charEmotion]); 
         var screenSide = scene.characters[i].charScreenSide;
         let charWidth = charImage.width ;
         let charHeight = charImage.height;
@@ -290,7 +356,10 @@ function renderSceneCharacters(context, scene) {
         }; 
         let x0 = document.documentElement.clientWidth / 2 - varShift; 
         let y0 = document.documentElement.clientHeight / 4;
-        context.drawImage(charImage, x0, y0, charWidth, charHeight);
+        //context.drawImage(charImage, x0, y0, charWidth, charHeight);
+        //timePerFrame is given as 10 milliseconds
+        //80 frames total
+        charSprite = new spriteObject(charImage, x0, y0, 10, 80); 
         renderScenePrompt(context, scene);
     }
 }

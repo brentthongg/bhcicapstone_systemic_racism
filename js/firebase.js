@@ -62,8 +62,18 @@ function loadResources(db) {
         querySnapshot.forEach((doc) => {
             if (doc.exists) {
                 let character = doc.data();
-                allResources.push(character.charImageUrl);
-                characterImages[doc.id] = character.charImageUrl;
+                for (var emotion in character.emotionURL) {
+                    if (!(character.emotionURL[emotion] == "")) {
+                        allResources.push(character.emotionURL[emotion])
+                        if (!(doc.id in characterImages)) {
+                            characterImages[doc.id] = {}
+                        }; 
+                        characterImages[doc.id][emotion] = character.emotionURL[emotion]; 
+                        console.log(character.emotionURL[emotion])
+                        console.log(emotion);
+                    } 
+                };
+                //characterImages[doc.id] = character.charImageUrl;
             } else {
                 console.log("No data found for characters.");
             }
