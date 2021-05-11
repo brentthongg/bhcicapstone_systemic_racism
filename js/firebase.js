@@ -9,25 +9,12 @@ const firebaseConfig = {
     measurementId: "G-620FYSBZSV"
 };
 
-var pushToFirebase = true;
+var pushToFirebase = false;
 
 /* VARIABLES */
 var stories = [];
 var characterImages = {};
 var resourceManager = new ResourceManager();
-var charConverter = {
-    toFirestore: function(character) {
-        return {
-            name: character.name,
-            charImageUrl: character.charImageUrl
-            };
-    },
-
-    fromFirestore: function(snapshot, options){
-        const data = snapshot.data(options);
-        return new Character(data.name, data.charImageUrl);
-    }
-};
 
 function initSession(db) {
     // Change to localStorage if we want sessions to persist past tab close. 
@@ -38,17 +25,16 @@ function initSession(db) {
         })
         .then((docRef) => {
             sessionStorage.setItem('sessionId', docRef.id);
-            console.log("Document created with ID: ", docRef.id);
+            initCanvas();
         })
         .catch((error) => {
             console.error("Error adding document: ", error);
         });
     } else {
-        console.log(sessionStorage.getItem('sessionId'));
+        initCanvas();
     }
-
     // Load the game through scripts.js:
-    initCanvas();
+    
 }
 
 var db;
@@ -75,7 +61,7 @@ function loadResources(db) {
         });
     })
     .then(() => {
-        db.collection("dummystories").get().then((querySnapshot) => {
+        db.collection("stories").get().then((querySnapshot) => {
             querySnapshot.forEach((doc) => {
                 if (doc.exists) {
                     stories.push({
@@ -100,6 +86,13 @@ function loadResources(db) {
         resources.load(allResources);
         resources.onReady(() => initSession(db));
     });
+}
+
+function writeSession(sessionData) {
+    var sessionRef = db.collection("sessions").doc(sessionStorage.getItem('sessionId'));
+    sessionRef.update(sessionData).then(() => {
+        initCanvas();
+    })
 }
 
 function extractStoryData(data) {
@@ -151,9 +144,8 @@ function pushResourcesToFirebase(db) {
                 ],
                 choices: {
                     choiceTexts: ["Ask Dad."],
-                    results: [4],
+                    results: [2],
                     responses: ["Hey Dad can I go to Billy's house tonight?"],
-                    disableMessage: true
                 },
                 imageUrl: "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
                 prompt: "It’s finally the weekend and you’ve been excited to go to Billy’s house to hang out with some of your friends.",
@@ -166,16 +158,22 @@ function pushResourcesToFirebase(db) {
                         charImg: db.doc("/characters/epQ8q7ge1L7M6GdftoY2"),
                         charScreenSide: "left",
                         charEmotion: "happy"
+                    },
+    
+                    {
+                        charImg: db.doc("/characters/9JSZ1GFF9HJYNGQuvI2S"),
+                        charScreenSide: "right",
+                        charEmotion: "happy"
                     }
                 ],
                 choices: {
                     choiceTexts: [],
-                    results: [3],
-                    responses: ["Hey Dad can I go to Billy's house tonight?"]
+                    results: [5],
+                    responses: []
                 },
                 imageUrl: "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
-                prompt: "This is the first time you’ve been to his house, so your parents will have a lot of questions.",
-                charResponses: []
+                prompt: "",
+                charResponses: ["How do you know Billy?"]
             }, 
     
             3: {
@@ -194,12 +192,12 @@ function pushResourcesToFirebase(db) {
                 ],
                 choices: {
                     choiceTexts: [],
-                    results: [4],
+                    results: [6],
                     responses: []
                 },
                 imageUrl: "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
                 prompt: "",
-                charResponses: []
+                charResponses: ["How long are you going to be staying there?"]
             },
     
             4: {
@@ -242,7 +240,7 @@ function pushResourcesToFirebase(db) {
                 ],
                 choices: {
                     choiceTexts: [],
-                    results: [6],
+                    results: [3],
                     responses: ["He's a friend from fourth period."]
                 },
                 imageUrl: "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
@@ -338,12 +336,12 @@ function pushResourcesToFirebase(db) {
                 ],
                 choices: {
                     choiceTexts: [],
-                    results: [10],
+                    results: [11],
                     responses: []
                 },
                 imageUrl: "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
-                prompt: "Your dad looks concerned, and hesitates with what he should say next. After a few seconds of deep thought, he looks at you with a serious expression.",
-                charResponses: []
+                prompt: "Dad looks concerned, and hesitates with what he should say next. After a few seconds of deep thought, he looks at me with a serious expression.",
+                charResponses: ["Listen, Deondre. When I was your age, there were signs in these types of neighborhoods saying that black folks were not allowed in the area after dark."]
             },
     
             10: {
@@ -367,7 +365,7 @@ function pushResourcesToFirebase(db) {
                 },
                 imageUrl: "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
                 prompt: "",
-                charResponses: ["Listen, Deondre. When I was your age, there were signs in these types of neighborhoods saying that black folks were not allowed in the area after dark."]
+                charResponses: []
             },
     
             11: {
@@ -530,7 +528,7 @@ function pushResourcesToFirebase(db) {
                 ],
                 choices: {
                     choiceTexts: [],
-                    results: [21],
+                    results: [100],
                     responses: []
                 },
                 imageUrl: "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
@@ -554,7 +552,7 @@ function pushResourcesToFirebase(db) {
                 ],
                 choices: {
                     choiceTexts: [],
-                    results: [21],
+                    results: [100],
                     responses: []
                 },
                 imageUrl: "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
@@ -578,7 +576,7 @@ function pushResourcesToFirebase(db) {
                 ],
                 choices: {
                     choiceTexts: [],
-                    results: [21],
+                    results: [100],
                     responses: []
                 },
                 imageUrl: "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
@@ -602,12 +600,36 @@ function pushResourcesToFirebase(db) {
                 ],
                 choices: {
                     choiceTexts: [],
-                    results: [21],
+                    results: [100],
                     responses: []
                 },
                 imageUrl: "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
                 prompt: "",
                 charResponses: ["Heyworth may not be as dangerous for Black people as it once was, but you still need to be very careful while you are there. Some people may think you do not belong."]
+            },
+
+            100: {
+                characters: [
+                    {
+                        charImg: db.doc("/characters/epQ8q7ge1L7M6GdftoY2"),
+                        charScreenSide: "left",
+                        charEmotion: "happy"
+                    },
+    
+                    {
+                        charImg: db.doc("/characters/9JSZ1GFF9HJYNGQuvI2S"),
+                        charScreenSide: "right",
+                        charEmotion: "happy"
+                    }
+                ],
+                choices: {
+                    choiceTexts: [],
+                    results: [21],
+                    responses: []
+                },
+                imageUrl: "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/clay-home-bg.jpg?alt=media&token=9ad68a13-3ac1-4adb-afa4-db979f5de09e",
+                prompt: "",
+                charResponses: []
             },
     
             21: {
@@ -681,6 +703,11 @@ function pushResourcesToFirebase(db) {
                     {
                         charImg: db.doc("/characters/epQ8q7ge1L7M6GdftoY2"),
                         charScreenSide: "left",
+                        charEmotion: "happy"
+                    },
+                    {
+                        charImg: db.doc("/characters/AUVFdncz2vpuXCpw4uRa"),
+                        charScreenSide: "right",
                         charEmotion: "happy"
                     }
                 ],
@@ -916,12 +943,12 @@ function pushResourcesToFirebase(db) {
                 ],
                 choices: {
                     choiceTexts: [],
-                    results: [35],
+                    results: [36],
                     responses: []
                 },
                 imageUrl: "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/Outside%20Billy%20House.jpg?alt=media&token=5db90aee-6cb2-42c7-8a98-3764c4c0b725",
                 prompt: "Billy directs you to his back yard. A group of 5 other kids from your school greet you with fist bumps. On the ground, there are a bunch of water guns and water balloons already filled and ready to be played with.",
-                charResponses: []
+                charResponses: ["We’ve been planning this water gun fight all week dude!"]
             },
     
             35: {
@@ -944,7 +971,7 @@ function pushResourcesToFirebase(db) {
                 },
                 imageUrl: "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/Outside%20Billy%20House.jpg?alt=media&token=5db90aee-6cb2-42c7-8a98-3764c4c0b725",
                 prompt: "",
-                charResponses: ["We’ve been planning this water gun fight all week dude!"]
+                charResponses: []
             },
     
             36: {
@@ -998,7 +1025,7 @@ function pushResourcesToFirebase(db) {
                     {
                         charImg: db.doc("/characters/epQ8q7ge1L7M6GdftoY2"),
                         charScreenSide: "left",
-                        charScreenSide: "worried"
+                        charEmotion: "worried"
                     },
                     {
                         charImg: db.doc("/characters/AUVFdncz2vpuXCpw4uRa"),
@@ -1021,7 +1048,7 @@ function pushResourcesToFirebase(db) {
                     {
                         charImg: db.doc("/characters/epQ8q7ge1L7M6GdftoY2"),
                         charScreenSide: "left",
-                        charScreenSide: "worried"
+                        charEmotion: "worried"
                     },
                     {
                         charImg: db.doc("/characters/AUVFdncz2vpuXCpw4uRa"),
@@ -1044,7 +1071,7 @@ function pushResourcesToFirebase(db) {
                     {
                         charImg: db.doc("/characters/epQ8q7ge1L7M6GdftoY2"),
                         charScreenSide: "left",
-                        charScreenSide: "worried"
+                        charEmotion: "worried"
                     },
                     {
                         charImg: db.doc("/characters/AUVFdncz2vpuXCpw4uRa"),
@@ -1067,7 +1094,7 @@ function pushResourcesToFirebase(db) {
                     {
                         charImg: db.doc("/characters/epQ8q7ge1L7M6GdftoY2"),
                         charScreenSide: "left",
-                        charScreenSide: "worried"
+                        charEmotion: "worried"
                     },
                     {
                         charImg: db.doc("/characters/AUVFdncz2vpuXCpw4uRa"),
@@ -1078,7 +1105,7 @@ function pushResourcesToFirebase(db) {
                 choices: {
                     choiceTexts: ["I'm not doing this...", "I'm not doing this.", "Can we just stay back here?"],
                     results: [42, 43, 44],
-                    responses: ["Yeah, I’m not doing this. It’s actually more dangerous for me than you realize.", "tually, never mind. I shouldn’t have said anything", "Maybe we can just have the fight in your backyard instead?"]
+                    responses: ["Yeah, I’m not doing this. It’s actually more dangerous for me than you realize.", "Actually, never mind. I shouldn’t have said anything", "Maybe we can just have the fight in your backyard instead?"]
                 },
                 imageUrl: "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/Outside%20Billy%20House.jpg?alt=media&token=5db90aee-6cb2-42c7-8a98-3764c4c0b725",
                 prompt: "How do you respond?",
@@ -1106,11 +1133,56 @@ function pushResourcesToFirebase(db) {
                 imageUrl: "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/Outside%20Billy%20House.jpg?alt=media&token=5db90aee-6cb2-42c7-8a98-3764c4c0b725",
                 prompt: "",
                 charResponses: []
+            },
+
+            43: {
+                characters: [
+                    {
+                        charImg: db.doc("/characters/epQ8q7ge1L7M6GdftoY2"),
+                        charScreenSide: "left",
+                        charEmotion: "happy"
+                    },
+                    {
+                        charImg: db.doc("/characters/AUVFdncz2vpuXCpw4uRa"),
+                        charScreenSide: "right",
+                        charEmotion: "happy"
+                    }
+                ],
+                choices: {
+                    choiceTexts: [],
+                    results: [],
+                    responses: []
+                },
+                imageUrl: "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/Outside%20Billy%20House.jpg?alt=media&token=5db90aee-6cb2-42c7-8a98-3764c4c0b725",
+                prompt: "",
+                charResponses: []
+            },
+            44: {
+                characters: [
+                    {
+                        charImg: db.doc("/characters/epQ8q7ge1L7M6GdftoY2"),
+                        charScreenSide: "left",
+                        charEmotion: "happy"
+                    },
+                    {
+                        charImg: db.doc("/characters/AUVFdncz2vpuXCpw4uRa"),
+                        charScreenSide: "right",
+                        charEmotion: "happy"
+                    }
+                ],
+                choices: {
+                    choiceTexts: [],
+                    results: [],
+                    responses: []
+                },
+                imageUrl: "https://firebasestorage.googleapis.com/v0/b/bhci-capstone-project-4.appspot.com/o/Outside%20Billy%20House.jpg?alt=media&token=5db90aee-6cb2-42c7-8a98-3764c4c0b725",
+                prompt: "",
+                charResponses: []
             }
         }
     }
     
-    // db.collection("dummystories").doc("Deondre").set(deondresStory).then((docRef) => {
-    //     console.log("Document written with ID: ", docRef.id);
-    // });
+    db.collection("stories").doc("Deondre").set(deondresStory).then((docRef) => {
+        console.log("Document written with ID: ", docRef.id);
+    });
 }

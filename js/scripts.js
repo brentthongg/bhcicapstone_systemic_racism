@@ -7,6 +7,7 @@ var lastTime;
 var totalTime = 0;
 var startTime;
 var sceneIterator;
+var sessionData;
 
 // Store the locations in case they change due to resize.
 var backButtonLocation = {
@@ -86,6 +87,16 @@ function splashScreenDraw(context) {
         splashOverlayDiv.appendChild(storyBtn);
     }
 
+    // Comment out these lines to get rid of the sessionID appearing at the beginning
+    // of the game:
+    let sessionText = document.createElement('p');
+    let sessionSpanText = document.createElement('span');
+    sessionSpanText.classList.add('highlight');
+    sessionSpanText.innerText = `Session ID: ${sessionStorage.getItem('sessionId')}`;
+    sessionText.appendChild(sessionSpanText);
+    sessionText.id = "session-text";
+    splashOverlayDiv.appendChild(sessionText);
+
     document.getElementById('wrapper').appendChild(splashOverlayDiv);
 }
 
@@ -93,6 +104,7 @@ function splashScreenDraw(context) {
 // is the desired functionality.
 function setupCanvas(context) {
     var startTime = Date.now();
+    sessionData["startTime"] = startTime;
     // Other canvas set up for data collection...
 }
 
@@ -108,17 +120,18 @@ function initCanvas() {
     var canvas = document.createElement('canvas');
     canvas.id = 'main-canvas';
     resizeCanvas(canvas);
-    canvas.addEventListener('click', (event) => {
-        let mousePosition = getMousePosition(canvas, event);
-        handleMousePressed(mousePosition);
-    }, false);
     document.getElementById('wrapper').appendChild(canvas);
+    sessionData = {};
 
     // Add resizeCanvas function to resize so that it changes dynamically:
     window.onresize = () => resizeCanvas(canvas);
     // Get context to draw onto canvas
     if (canvas.getContext) {
         var context = canvas.getContext('2d');
+        canvas.addEventListener('click', (event) => {
+            let mousePosition = getMousePosition(canvas, event);
+            handleMousePressed(mousePosition, context);
+        }, false);
         setupCanvas(context);
         gameStates.splashState(context);
     } else {
@@ -151,7 +164,7 @@ function mainLoop(context) {
     if (gameStates.currState === 'inGame') {
         render(context);
     }
-    else {
+    else if (gameStates.currState === 'splash') {
         splashScreenRender(context);
     }
 
@@ -205,13 +218,39 @@ function getLines(ctx, text, maxWidth) {
     return lines;
 }
 
+function renderScenePromptBackground(context, scene, lines, y) {
+    if (scene.prompt.length == 0) {
+        return;
+    }
+    let textHeightMargin = 35; // height + margin
+    let margin = 20;
+
+    let textMetrics = context.measureText(lines[0]);
+    let h = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
+    let boxHeight = ((h + textHeightMargin) * lines.length) - (2 * textHeightMargin) + (2 * margin);
+    let boxWidth = document.documentElement.clientWidth * .8;
+    let y0 = y - margin - (h / 2.0)
+    
+    roundRect(context, document.documentElement.clientWidth * .1, y0, boxWidth, 
+              boxHeight, 0, 'rgba(0, 0, 0, 0.5)', 0);
+
+}
+
 function renderScenePrompt(context, scene) {
+    let textHeightMargin = 35;
     context.font = '32px Avenir';
     let maxWidth = document.documentElement.clientWidth * (.4);
     let lines = getLines(context, scene.prompt, maxWidth);
     
+    
     x = document.documentElement.clientWidth / 2;
-    y = document.documentElement.clientHeight * 0.75;
+    if (sceneIterator.messageQueue.isEmpty()) {
+        y = document.documentElement.clientHeight * 0.1;
+    }
+    else {
+        y = document.documentElement.clientHeight * 0.75;
+    }
+    // renderScenePromptBackground(context, scene, lines, y);
 
     for (let i = 0; i < lines.length; i++) {
         let line = lines[i];
@@ -219,8 +258,9 @@ function renderScenePrompt(context, scene) {
         context.textAlign = 'center';
         context.fillText(line, x, y);
         context.textAlign = 'left';
-        y += 35;
+        y += textHeightMargin;
     }
+    context.fillStyle = 'black';
     
 }
 
@@ -317,7 +357,7 @@ function renderSingularMessage(context, msgContent, y, i, side) {
         y += height + margin;
         context.textAlign = 'left';
     }
-    y += 10;
+    y += margin;
 
 }
 
@@ -468,7 +508,7 @@ function renderSceneCharacters(context, scene) {
             varShift = -1 * (charWidth/2); 
         }; 
         let x0 = document.documentElement.clientWidth / 2 - varShift; 
-        let y0 = document.documentElement.clientHeight / 4;
+        let y0 = document.documentElement.clientHeight - charHeight;
         context.drawImage(charImage, x0, y0, charWidth, charHeight);
         renderScenePrompt(context, scene);
     }
@@ -581,24 +621,31 @@ function clickedForwardButton(mousePosition) {
     return distance < forwardButtonLocation.r;
 }
 
-function handleMousePressed(mousePosition) {
+function handleMousePressed(mousePosition, context) {
     if (gameStates.currState == 'splash') { return }
     else if (gameStates.currState === 'inGame') {
         let sceneClickResult = clickedStoryButton(mousePosition);
         console.log(mousePosition);
 
         if (sceneClickResult.wasClicked) {
+            sessionData[Date.now().toString()] = sceneIterator.nextChoiceTexts()[sceneClickResult.button];
             let results = sceneIterator.nextScenes();
             sceneIterator.next(results[sceneClickResult.button], sceneClickResult.button);
         }
 
         else if (clickedBackButton(mousePosition)) {
+            sessionData[Date.now().toString()] = "back";
             sceneIterator.back();
             return;
         }
 
         else if (clickedForwardButton(mousePosition)) {
-            sceneIterator.next();
+            sessionData[Date.now().toString()] = "forward";
+            let nextScene = sceneIterator.next();
+            if (nextScene == null) { // end of the game
+                sessionData['endTime'] = Date.now();
+                writeSession(sessionData); // Finishes session and restarts game
+            }
             return;
         }
     }
@@ -629,7 +676,7 @@ function getMessageOpacity(i) {
 
 // CITATION:
 // https://stackoverflow.com/questions/1255512/how-to-draw-a-rounded-rectangle-using-html-canvas
-function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+function roundRect(ctx, x, y, width, height, radius, fill, stroke, opacity=1.0) {
     if (typeof stroke === 'undefined') {
       stroke = true;
     }
@@ -656,7 +703,9 @@ function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
     ctx.quadraticCurveTo(x, y, x + radius.tl, y);
     ctx.closePath();
     if (fill) {
-      ctx.fill();
+        ctx.fillStyle = fill;
+        ctx.fill();
+        ctx.fillStyle = 'black';
     }
     if (stroke) {
       ctx.stroke();

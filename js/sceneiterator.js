@@ -26,12 +26,27 @@ class SceneIterator {
         }
     }
 
+    nextChoiceTexts() {
+        let sceneId = this.curr;
+        if (sceneId in this.story.scenes) {
+            return this.story.scenes[sceneId].choices.choiceTexts;
+        } else {
+            console.error(`Scene of id ${sceneId} does not exist.`);
+        }
+    }
+
     next(sceneId = -1, choice = -1) {
+        if (this.nextScenes().length === 0) {
+            // No more scenes left! End of the game.
+            return;
+        }
+
         if (sceneId === -1) {
             sceneId = this.story.scenes[this.curr].choices.results[0];
         }
 
         var currScene = this.story.scenes[this.curr];
+
         var textMessage = {
             text: "",
             side: ""
@@ -47,6 +62,8 @@ class SceneIterator {
                     textMessage.text = currScene.choices.responses[0];
                     textMessage.side = "left";
         }
+
+        console.log(textMessage);
 
         if (textMessage.text.length === 0) { // no messages, reset
             this.messageQueue.emptyContents();

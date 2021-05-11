@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Understanding Systemic Racism - Download Data</title>
+
+        <!-- Stylesheet and scripts -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0" crossorigin="anonymous">
+        <link rel="stylesheet" href="css/styles.css">
+        <!-- Insert a favicon if/when we have one -->
+        <!-- <link rel="shortcut icon" href="favicon.ico"> -->
+        <!-- JQuery -->
+        <script
+            src="https://code.jquery.com/jquery-3.6.0.slim.min.js"
+            integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI="
+            crossorigin="anonymous">
+        </script>
+        <!-- Firebase required scripts -->
+        <script src="https://www.gstatic.com/firebasejs/8.4.1/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/8.4.1/firebase-firestore.js"></script>
+
+        <script src="js/dataDownload.js"></script>
+    </head>
+    <body>
+
+        <div id="main-container-download" class="container" style="text-align: center; margin-top: 50px;">
+            <h1 class="text-center">Generate JSON</h1>
+            <hr>
+        
+            <label for="email"><b>Session ID [If blank, download all data]</b></label>
+            <br />
+            <input type="text" placeholder="Session ID" name="session-id" id="session-id-input" required>
+            <br />
+            <br />
+            <a id="download-json-link">
+                <button id="data-push" type="button" class="btn btn-outline-dark" onclick="dataDownload()">
+                    Generate Download Link
+                </button>
+            </a>
+
+        </div>
+        
+    </body>
+</html>
