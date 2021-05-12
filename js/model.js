@@ -1,6 +1,8 @@
-/* All the models for each table in the database but I'm not sure how important
-   everything is, especially since we don't write to the database from this
-   application besides the session data. */
+/* 
+ * All the models for each table in the database. Note that this code
+ * isn't actually being used, but can be a useful reference to how things
+ * are being represented within the database.
+ */
 
 class Choice {
     constructor(responses, results) {
