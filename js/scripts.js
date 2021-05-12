@@ -182,12 +182,12 @@ function mainLoop(context) {
 
 function update(dt) {
     totalTime += dt;
-    if (typeof charSprite != "undefined") {
+   /* if (typeof charSprite != "undefined") {
         let charImg = charSprite.spritesheet; 
         charImg.addEventListener('load', () => {
             charSprite.update(); 
         }, false);
-    }
+    } */
     // Implement this function if we're doing sprites:
     // updateSpriteEmotion();
 }
@@ -209,12 +209,12 @@ function renderScene(context) {
     let scene = sceneIterator.get();
     renderSceneBg(context, scene);
     renderSceneButtons(context, scene);
-    if (typeof charSprite != "undefined") {
+    /*if (typeof charSprite != "undefined") {
         let charImg = charSprite.spritesheet; 
         charImg.addEventListener('load', () => {
             charSprite.draw(context); 
         }, false);
-    }
+    } */
 }
 
 // https://stackoverflow.com/questions/2936112/text-wrap-in-a-canvas-element
@@ -554,6 +554,40 @@ function spriteObject(spritesheet, x, y, timePerFrame, numberOfFrames) {
     }
 } 
 
+function drawSprite(sprite, numColumns, numRows)
+    // Define the number of columns and rows in the sprite
+     /*let numColumns = 5;
+    let numRows = 2; */
+
+    // Define the size of a frame
+    let frameWidth = sprite.width / numColumns;
+    let frameHeight = sprite.height / numRows;
+
+    // The sprite image frame starts from 0
+    let currentFrame = 0;
+
+    setInterval(function()
+    {
+        // Pick a new frame
+        currentFrame++;
+
+        // Make the frames loop
+        let maxFrame = numColumns * numRows - 1;
+        if (currentFrame > maxFrame){
+            currentFrame = 0;
+        }
+
+        // Update rows and columns
+        let column = currentFrame % numColumns;
+        let row = Math.floor(currentFrame / numColumns);
+
+        // Clear and draw
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(sprite, column * frameWidth, row * frameHeight, frameWidth, frameHeight, 10, 30, frameWidth, frameHeight);
+
+    //Wait for next step in the loop
+    }, 100);
+
 function renderSceneCharacters(context, scene) {
     for (let i = 0; i < scene.characters.length; i++) {
         //Put in CharEmotion somehow
@@ -578,7 +612,8 @@ function renderSceneCharacters(context, scene) {
         //context.drawImage(charImage, x0, y0, charWidth, charHeight);
         //timePerFrame is given as 10 milliseconds
         //80 frames total
-        charSprite = new spriteObject(charImage, x0, y0, 10, 80); 
+        //charSprite = new spriteObject(charImage, x0, y0, 10, 80); 
+        drawSprite(charImage, 5, 18); 
         renderScenePrompt(context, scene);
     }
 }
