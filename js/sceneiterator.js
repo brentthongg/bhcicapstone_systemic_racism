@@ -2,7 +2,7 @@ class SceneIterator {
     constructor(story) {
         this.story = story;
         this.sceneStack = [];
-        this.messageQueue = new Queue([], 4); // Empty queue, maxLength = 4
+        this.messageQueue = new MessageQueue([]); // Empty queue, maxLength = 4
         this.curr = 1;
     }
 
@@ -79,9 +79,7 @@ class SceneIterator {
     back() {
         if (this.sceneStack.length > 0) {
             let sceneId = this.sceneStack.pop();
-            if (!this.messageQueue.isEmpty()) {
-                this.messageQueue.pop();
-            }
+            this.messageQueue.pop();
             if (sceneId in this.story.scenes) {
                 this.curr = sceneId;
                 return this.get();

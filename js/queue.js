@@ -1,44 +1,59 @@
-/* Queue implementation */
+/* MessageQueue is a variation of the Queue data structure that holds 
+   previous messages rather then dequeing messages. */
 
-class Queue {
-    constructor(arr, maxLength = -1) {
+class MessageQueue {
+    constructor(arr) {
+        this.messageQueueStack = [];
         if (typeof arr === 'undefined') {
             this.arr = [];
         } else {
             this.arr = [...arr];
         }
-        this.maxLength = maxLength;
     }
 
     // Goes in FIFO order like a queue by reversing the array first.
-    forEach(mapFn) { 
+    // will only go first n elements deep.
+    forEach(mapFn, n = 4) { // default value is 4 because of the story.
         // .reverse() is destructive so first copy the array.
         let arrCopy = [...this.arr]; 
         arrCopy.reverse();
+        arrCopy = arrCopy.slice(0, n);
         return arrCopy.map(mapFn);
     }
 
     emptyContents() {
+        this.messageQueueStack.push([...this.arr]); // Make a shallow copy.
         this.arr = [];
     }
 
     pop() { // This isn't technically a queue method but it's needed.
-        if (this.arr.length === 0) {
-            console.log("Attempting to pop queue when queue is empty.");
+        console.log(this);
+        if (this.arr.length === 0 && this.messageQueueStack.length === 0) {
+            console.error("Attempting to pop from an empty MessageQueue.");
             return;
         }
+
+        if (this.arr.length === 1 && this.messageQueueStack.length > 0) {
+            let result = this.arr.pop();
+            this.arr = this.messageQueueStack.pop();
+            return result;
+        }
+
+        if (this.arr.length === 0 && this.messageQueueStack.length > 0) {
+            this.arr = this.messageQueueStack.pop();
+            return;
+        }
+
         return this.arr.pop();
     }
 
     enqueue(elem) { 
         this.arr.push(elem);
-        if (this.arr.length > this.maxLength) {
-            this.deque();
-        }
+        console.log(this);   
     }
 
     deque() {
-        if (this.isEmpty()) {
+        if (this.e()) {
             // do nothing
         }
 
@@ -50,7 +65,7 @@ class Queue {
     }
 
     toString() {
-        return this.arr.toString();
+        return `All messages so far: ${this.messageQueueStack.toString()}`;
     }
 
     isEmpty() {

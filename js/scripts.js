@@ -368,8 +368,9 @@ function renderMessages(context) {
     let margin = 20;
     let textHeightMargin = 10;
     var iter = 0;
-
-    for (let i = sceneIterator.messageQueue.arr.length - 1; i > 0; i--) {
+    let maxMessageQueueLength = Math.max(0, sceneIterator.messageQueue.arr.length - 4);
+    
+    for (var i = sceneIterator.messageQueue.arr.length - 1; i > maxMessageQueueLength; i--) {
         let message = sceneIterator.messageQueue.arr[i];
         let nextMessage = sceneIterator.messageQueue.arr[i - 1];
         let result = partitionMessage(message, context);
@@ -382,7 +383,7 @@ function renderMessages(context) {
         iter++;
     }
 
-    let message = sceneIterator.messageQueue.arr[0];
+    let message = sceneIterator.messageQueue.arr[i];
     let result = partitionMessage(message, context);
     renderSingularMessage(context, result, y, iter, message.side)
 
