@@ -9,6 +9,7 @@ var startTime;
 var sceneIterator;
 var sessionData;
 var currStoryId;
+var charSprites; 
 
 // Store the locations in case they change due to resize.
 var backButtonLocation = {
@@ -157,6 +158,7 @@ function gameMainLoop(context, storyId) {
     }
 
     sceneIterator = new SceneIterator(storyData);
+    initCharacterSprites(sceneIterator.get());
 
     lastTime = Date.now();
     mainLoop(context);
@@ -181,6 +183,9 @@ function mainLoop(context) {
 
 function update(dt) {
     totalTime += dt;
+    for (i=0; i < charSprites.length; i++) {
+        charSprites[i].update(); 
+    }
     // Implement this function if we're doing sprites:
     // updateSpriteEmotion();
 }
@@ -202,6 +207,12 @@ function renderScene(context) {
     let scene = sceneIterator.get();
     renderSceneBg(context, scene);
     renderSceneButtons(context, scene);
+    /* if (typeof charSprite != "undefined") {
+        let charImg = charSprite.spritesheet; 
+        charImg.addEventListener('load', () => {
+            charSprite.draw(context); 
+        }, false);
+    } */
 }
 
 // https://stackoverflow.com/questions/2936112/text-wrap-in-a-canvas-element
@@ -395,6 +406,91 @@ function renderMessages(context) {
 
 }
 
+function initCharacterSprites (scene) {
+    charSprites = []
+    for (let i = 0; i < scene.characters.length; i++) {
+        var charLink = scene.characters[i].charImg.id; 
+        var charEmotion = scene.characters[i].charEmotion; 
+        var charImage = resourceManager.get(characterImages[charLink][charEmotion]);
+        var screenSide = scene.characters[i].charScreenSide;
+        let charWidth = charImage.width;
+        let charHeight = charImage.height;
+        //varShift represents the shift in the x coords on the screen depending on if char is on left or right of the screen
+        // If no side is defined, the original value
+        //8 is hardcoded
+        let spriteHeight = charImage.height/8; 
+        //5 refers to the numSpritesinRow
+        let spriteWidth = charImage.width/5;
+        let varShift = charWidth/2; 
+        if (screenSide == 'left') {
+            varShift = 1.8*spriteWidth; 
+        }
+        else if (screenSide == 'right') {
+            varShift = -1.5 * (spriteWidth/2); 
+        };  
+        let x0 = document.documentElement.clientWidth / 2 - varShift; 
+        //Change the magic number 10 later
+        let y0 = document.documentElement.clientHeight - 100 - spriteHeight;
+        //context.drawImage(charImage, x0, y0, charWidth, charHeight);
+        //Change y0 later
+        //The width is messed up!!
+        charSprite = new spriteObject(charImage, x0, y0 , 100, 36);
+        charSprites.push(charSprite); 
+    }
+}
+
+function spriteObject(spritesheet, x, y, timePerFrame, numberOfFrames) {
+    this.spritesheet = spritesheet;             //the spritesheet image
+    this.x = x;                                 //the x coordinate of the object
+    this.y = y; 
+    this.width = spritesheet.width; 
+    this.height = spritesheet.height;                             
+    //this.width = width;                         //width of spritesheet
+    //this.height = height;                       //height of spritesheet
+    this.timePerFrame = timePerFrame;           //time in(ms) given to each frame
+    //this.numberOfFrames = (width/numberOfFramesPerRow) * (height)
+    this.numberOfFrames = numberOfFrames || 1;  //number of frames(sprites) in the spritesheet, default 1
+    this.numSpritesInRow = 5; 
+    this.spriteHeight = this.height/8; 
+    this.spriteWidth = this.width/this.numSpritesInRow; 
+
+    //current frame index pointer
+    this.frameIndex = 0;
+
+    //time the frame index was last updated
+    this.lastUpdate = Date.now();
+
+    //to update
+    this.update = function() {
+        if(Date.now() - this.lastUpdate >= this.timePerFrame) {
+            //this.frameIndex++;
+            this.frameIndex = (this.frameIndex + 1) % this.numberOfFrames; 
+            //console.log(this.frameIndex); 
+            /*if(this.frameIndex >= this.numberOfFrames) {
+                this.frameIndex = 0;
+            }*/
+            this.lastUpdate = Date.now();
+        }
+    }
+
+    //to draw on the canvas, parameter is the context of the canvas to be drawn on
+    //5 is the number of Frames per Row
+    //Change the this.height/8, that's hardcoded
+    //Row
+    this.draw = function(context) { 
+        context.drawImage(this.spritesheet,
+                         (this.frameIndex % this.numSpritesInRow) * (this.width/this.numSpritesInRow),
+                          Math.floor(this.frameIndex/this.numSpritesInRow) * this.height/8,
+                          this.width/this.numSpritesInRow,
+                          this.height/8,
+                          x,
+                          y,
+                          this.width/4, 
+                          this.height/6);
+        //console.log(this.height/18)
+    }
+} 
+
 function resetForwardButtonLocation() {
     forwardButtonLocation.cx = -1;
     forwardButtonLocation.cy = -1;
@@ -500,7 +596,7 @@ function renderChoiceButtons(context, scene) {
 }
 
 function renderSceneCharacters(context, scene) {
-    for (let i = 0; i < scene.characters.length; i++) {
+    /*for (let i = 0; i < scene.characters.length; i++) {
         var charImage = resourceManager.get(characterImages[scene.characters[i].charImg.id]);
         var screenSide = scene.characters[i].charScreenSide;
         let charWidth = charImage.width;
@@ -516,10 +612,13 @@ function renderSceneCharacters(context, scene) {
         }; 
         let x0 = document.documentElement.clientWidth / 2 - varShift; 
         let y0 = document.documentElement.clientHeight - charHeight;
-        context.drawImage(charImage, x0, y0, charWidth, charHeight);
+        //context.drawImage(charImage, x0, y0, charWidth, charHeight);
+        charSprite = new spriteObject(charImage, x0, y0, 10, 80);*/
+        for (let i =0; i < charSprites.length; i++) {
+            charSprites[i].draw(context); 
+        }; 
         renderScenePrompt(context, scene);
     }
-}
 
 function renderSceneBg(context, scene) {
     var bgImage = new Image();
@@ -637,7 +736,8 @@ function handleMousePressed(mousePosition, context) {
         if (sceneClickResult.wasClicked) {
             sessionData[currStoryId][Date.now().toString()] = sceneIterator.nextChoiceTexts()[sceneClickResult.button];
             let results = sceneIterator.nextScenes();
-            sceneIterator.next(results[sceneClickResult.button], sceneClickResult.button);
+            let nextScene = sceneIterator.next(results[sceneClickResult.button], sceneClickResult.button);
+            initCharacterSprites(nextScene); 
         }
 
         else if (clickedBackButton(mousePosition)) {
@@ -652,8 +752,9 @@ function handleMousePressed(mousePosition, context) {
             if (nextScene == null) { // end of the game
                 sessionData[currStoryId]['endTime'] = Date.now();
                 writeSession(sessionData); // Finishes session and restarts game
+                return;
             }
-            return;
+            initCharacterSprites(nextScene); 
         }
     }
 }
