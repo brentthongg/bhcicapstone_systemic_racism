@@ -57,8 +57,6 @@ class ResourceManager {
         for (var k in this.resourceCache) {
             if (this.resourceCache.hasOwnProperty(k) &&
                !this.resourceCache[k]) {
-                   console.log(k);
-                   console.log(this.resourceCache[k]);
                 ready = false;
             }
         }

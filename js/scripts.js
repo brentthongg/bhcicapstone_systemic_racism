@@ -55,7 +55,6 @@ const gameStates = {
         currStoryId = storyId;
         sessionData[currStoryId] = {};
         sessionData[currStoryId]['startTime'] = Date.now();
-        console.log("HERE");
         gameMainLoop(context, storyId);
     }
 }
@@ -151,9 +150,9 @@ function gameMainLoop(context, storyId) {
     for (let i = 0; i < stories.length; i++) {
         if (stories[i].id == storyId) storyData = stories[i].data;
     }
-    console.log(storyData);
+
     if (storyData === undefined) {
-        console.log("Error occured while retrieving story. Please try again.");
+        console.error("Error occured while retrieving story. Please try again.");
         return;
     }
 
@@ -283,7 +282,6 @@ function renderScenePrompt(context, scene) {
 
 function partitionMessage(message, context) {
     if (typeof message.text === 'undefined') {
-        console.log(message);
         return;
     }
     let maxWidth = document.documentElement.clientWidth / 4.0;
@@ -439,6 +437,7 @@ function initCharacterSprites (scene) {
     }
 }
 
+// CITATION: https://mr-easy.github.io/2017-06-26-creating-spritesheet-animation-in-html5-canvas-using-javascript/
 function spriteObject(spritesheet, x, y, timePerFrame, numberOfFrames) {
     this.spritesheet = spritesheet;             //the spritesheet image
     this.x = x;                                 //the x coordinate of the object
@@ -463,20 +462,11 @@ function spriteObject(spritesheet, x, y, timePerFrame, numberOfFrames) {
     //to update
     this.update = function() {
         if(Date.now() - this.lastUpdate >= this.timePerFrame) {
-            //this.frameIndex++;
             this.frameIndex = (this.frameIndex + 1) % this.numberOfFrames; 
-            //console.log(this.frameIndex); 
-            /*if(this.frameIndex >= this.numberOfFrames) {
-                this.frameIndex = 0;
-            }*/
             this.lastUpdate = Date.now();
         }
     }
 
-    //to draw on the canvas, parameter is the context of the canvas to be drawn on
-    //5 is the number of Frames per Row
-    //Change the this.height/8, that's hardcoded
-    //Row
     this.draw = function(context) { 
         context.drawImage(this.spritesheet,
                          (this.frameIndex % this.numSpritesInRow) * (this.width/this.numSpritesInRow),
@@ -487,7 +477,6 @@ function spriteObject(spritesheet, x, y, timePerFrame, numberOfFrames) {
                           y,
                           this.width/4, 
                           this.height/6);
-        //console.log(this.height/18)
     }
 } 
 
@@ -731,7 +720,6 @@ function handleMousePressed(mousePosition, context) {
     if (gameStates.currState == 'splash') { return }
     else if (gameStates.currState === 'inGame') {
         let sceneClickResult = clickedStoryButton(mousePosition);
-        console.log(mousePosition);
 
         if (sceneClickResult.wasClicked) {
             sessionData[currStoryId][Date.now().toString()] = sceneIterator.nextChoiceTexts()[sceneClickResult.button];

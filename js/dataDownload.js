@@ -62,7 +62,7 @@ function dataDownload() {
                   arr.push(session);
                 }
             } else {
-                console.log("No data found for session.");
+                alert("No data found for session. Please make sure the session id is correct.");
             }
         });
       })
