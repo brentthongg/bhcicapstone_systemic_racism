@@ -16,12 +16,29 @@ var stories = [];
 var characterImages = {};
 var resourceManager = new ResourceManager();
 
+function init(db) {
+    // Cache the ip address into local storage so that it persists longer and 
+    // limits API calls. 
+    if (localStorage.getItem('ipAddress') === null) {
+        let apiKey = '3d38e0466224473a9620e707f2e9788a';
+        $.getJSON('https://api.ipgeolocation.io/ipgeo?apiKey=' + apiKey, (data) => {
+            console.log(data);
+            localStorage.setItem('ipAddress', data.ip);
+        })
+        .then(() => {
+            initSession(db);
+        });
+    } else {
+        initSession(db);
+    }
+}
+
 function initSession(db) {
-    // Change to localStorage if we want sessions to persist past tab close. 
+    // Load the game through scripts.js:
     if (sessionStorage.getItem('sessionId') === null) { 
         db.collection('sessions').add({
-            // Purposefully left empty, data is populated later (on window 
-            // close or finished session).
+            ipAddress: localStorage.getItem('ipAddress'),
+            openedGame: Date.now()
         })
         .then((docRef) => {
             sessionStorage.setItem('sessionId', docRef.id);
@@ -33,7 +50,6 @@ function initSession(db) {
     } else {
         initCanvas();
     }
-    // Load the game through scripts.js:
     
 }
 
@@ -68,7 +84,6 @@ function loadResources(db) {
                         id: doc.id,
                         data: doc.data()
                     });
-                    console.log(stories);
                     let scenes = doc.data().scenes;
                     for (var id in scenes) {
                         allResources.push(scenes[id].imageUrl);
@@ -84,20 +99,19 @@ function loadResources(db) {
             extractStoryData(stories[i].data, stories[i]);
         }
         resources.load(allResources);
-        resources.onReady(() => initSession(db));
+        resources.onReady(() => { init(db) });
     });
 }
 
-// Adds the client's IP address to the sessionData.
-function writeSession(sessionData) {
-    var sessionRef = db.collection("sessions").doc(sessionStorage.getItem('sessionId'));
+function writeSession(sessionData, finished=true) {
+    sessionData['ipAddress'] = localStorage.getItem('ipAddress');
+    let sessionId = sessionStorage.getItem('sessionId');
+    var sessionRef = db.collection("sessions").doc(sessionId);
     sessionRef.update(sessionData).then(() => {
-        initCanvas();
+        if (finished) { // reset
+            initCanvas();
+        }
     });
-    // $.getJSON('https://api.ipify.org?format=json', (data) => {
-        // sessionDsata[ipAddress] = data.ip;
-        
-    // });
 }
 
 function extractStoryData(data) {

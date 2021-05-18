@@ -17,7 +17,7 @@ $(document).ready(function() {
 
 // CITATION: https://www.aspsnippets.com/Articles/Download-JSON-object-Array-as-File-from-Browser-using-JavaScript.aspx
 function convertToJson(arr, sessionId) {
-    let json = JSON.stringify(arr);
+    let json = JSON.stringify(arr, null, 4); // spacing level is 4
     json = [json];
     var blob = new Blob(json, { type: "text/plain;charset=utf-8" });
     var url = window.URL || window.webkitURL;

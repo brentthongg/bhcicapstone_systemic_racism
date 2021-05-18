@@ -8,6 +8,7 @@ var totalTime = 0;
 var startTime;
 var sceneIterator;
 var sessionData;
+var currStoryId;
 
 // Store the locations in case they change due to resize.
 var backButtonLocation = {
@@ -50,6 +51,10 @@ const gameStates = {
     inGameState: (context, storyId) => {
         gameStates.currState = 'inGame';
         document.getElementById('splash-overlay').remove();
+        currStoryId = storyId;
+        sessionData[currStoryId] = {};
+        sessionData[currStoryId]['startTime'] = Date.now();
+        console.log("HERE");
         gameMainLoop(context, storyId);
     }
 }
@@ -103,8 +108,7 @@ function splashScreenDraw(context) {
 // TO DO: This restarts if someone goes back to the main page. Not sure if that
 // is the desired functionality.
 function setupCanvas(context) {
-    var startTime = Date.now();
-    sessionData["startTime"] = startTime;
+    
     // Other canvas set up for data collection...
 }
 
@@ -121,7 +125,9 @@ function initCanvas() {
     canvas.id = 'main-canvas';
     resizeCanvas(canvas);
     document.getElementById('wrapper').appendChild(canvas);
-    sessionData = {};
+    if (typeof sessionData == 'undefined') {
+        sessionData = {};
+    }
 
     // Add resizeCanvas function to resize so that it changes dynamically:
     window.onresize = () => resizeCanvas(canvas);
@@ -144,7 +150,7 @@ function gameMainLoop(context, storyId) {
     for (let i = 0; i < stories.length; i++) {
         if (stories[i].id == storyId) storyData = stories[i].data;
     }
-    
+    console.log(storyData);
     if (storyData === undefined) {
         console.log("Error occured while retrieving story. Please try again.");
         return;
@@ -629,22 +635,22 @@ function handleMousePressed(mousePosition, context) {
         console.log(mousePosition);
 
         if (sceneClickResult.wasClicked) {
-            sessionData[Date.now().toString()] = sceneIterator.nextChoiceTexts()[sceneClickResult.button];
+            sessionData[currStoryId][Date.now().toString()] = sceneIterator.nextChoiceTexts()[sceneClickResult.button];
             let results = sceneIterator.nextScenes();
             sceneIterator.next(results[sceneClickResult.button], sceneClickResult.button);
         }
 
         else if (clickedBackButton(mousePosition)) {
-            sessionData[Date.now().toString()] = "back";
+            sessionData[currStoryId][Date.now().toString()] = "back";
             sceneIterator.back();
             return;
         }
 
         else if (clickedForwardButton(mousePosition)) {
-            sessionData[Date.now().toString()] = "forward";
+            sessionData[currStoryId][Date.now().toString()] = "forward";
             let nextScene = sceneIterator.next();
             if (nextScene == null) { // end of the game
-                sessionData['endTime'] = Date.now();
+                sessionData[currStoryId]['endTime'] = Date.now();
                 writeSession(sessionData); // Finishes session and restarts game
             }
             return;
