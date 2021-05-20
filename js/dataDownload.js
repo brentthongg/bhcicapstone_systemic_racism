@@ -9,6 +9,7 @@ const firebaseConfig = {
 };
 
 var db;
+var user;
 $(document).ready(function() {
     firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
@@ -17,7 +18,10 @@ $(document).ready(function() {
 
 // CITATION: https://www.aspsnippets.com/Articles/Download-JSON-object-Array-as-File-from-Browser-using-JavaScript.aspx
 function convertToJson(arr, sessionId) {
-    let json = JSON.stringify(arr);
+    if (!user) {
+      return;
+    }
+    let json = JSON.stringify(arr, null, 4); // spacing level is 4
     json = [json];
     var blob = new Blob(json, { type: "text/plain;charset=utf-8" });
     var url = window.URL || window.webkitURL;
@@ -47,6 +51,9 @@ function convertToJson(arr, sessionId) {
 }
 
 function dataDownload() {
+    if (!user) {
+      return;
+    }
     let sessionId = document.getElementById('session-id-input').value;
     var arr = [];
 
@@ -62,7 +69,7 @@ function dataDownload() {
                   arr.push(session);
                 }
             } else {
-                console.log("No data found for session.");
+                alert("No data found for session. Please make sure the session id is correct.");
             }
         });
       })
@@ -78,3 +85,33 @@ function dataDownload() {
       })
     }
 }
+
+// CITATION: https://firebase.google.com/docs/auth/web/start
+function signIn() {
+  let email = document.getElementById("email-input").value;
+  let password = document.getElementById("password-input").value;
+  firebase.auth().signInWithEmailAndPassword(email, password)
+      .then((userCredentials) => {
+          user = userCredentials.user;
+          console.log(`Successful sign in with user: ${user}`);
+          document.getElementById("signin").style.display = 'none';
+          document.getElementById("main-container-download").style.display = 'block';
+      })
+      .catch((error) => {
+          // Failed sign-in.
+          var errorCode = error.code;
+          var errorMessage = error.message;
+          console.error(errorCode);
+          console.error(errorMessage);
+          var errorElement = document.createElement("p");
+          errorElement.id = "signin-error-txt"
+          errorElement.style.color = 'red';
+          errorElement.innerText = errorMessage;
+          let prevErrorElem = document.getElementById("signin-error-txt");
+          if (prevErrorElem) {
+              $(prevErrorElem).remove();
+          }
+          document.getElementById("signin").appendChild(errorElement);
+      })
+}
+
