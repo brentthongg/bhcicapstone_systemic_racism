@@ -13,6 +13,7 @@ const firebaseConfig = {
 var stories = [];
 var characterImages = {};
 var resourceManager = new ResourceManager();
+var user;
 
 function init(db) {
     // Cache the ip address into local storage so that it persists longer and 
