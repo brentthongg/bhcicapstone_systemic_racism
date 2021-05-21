@@ -22,16 +22,40 @@
         <!-- Firebase required scripts -->
         <script src="https://www.gstatic.com/firebasejs/8.4.1/firebase-app.js"></script>
         <script src="https://www.gstatic.com/firebasejs/8.4.1/firebase-firestore.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/8.4.1/firebase-auth.js"></script>
+
+        <!-- UI for sign in -->
+        <script src="https://www.gstatic.com/firebasejs/ui/4.8.0/firebase-ui-auth.js"></script>
+        <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.8.0/firebase-ui-auth.css" />
 
         <script src="js/dataDownload.js"></script>
     </head>
     <body>
 
-        <div id="main-container-download" class="container" style="text-align: center; margin-top: 50px;">
+        <div id="signin" class="container" style="text-align: center; margin-top: 50px;">
+            <h3> Sign in to access </h3>
+            <label for="email"><b>Email</b></label>
+            <br />
+            <input type="text" placeholder="Email" name="email" id="email-input" required>
+            <br />
+            <br />
+            <label for="email"><b>Password</b></label>
+            <br />
+            <input type="password" placeholder="Password" name="password" id="password-input" required>
+            <br />
+            <br />
+
+            <button id="signin-btn" type="button" class="btn btn-outline-dark" onclick="signIn()">
+                Sign In
+            </button>
+
+        </div>
+
+        <div id="main-container-download" class="container" style="text-align: center; margin-top: 50px; display: none;">
             <h1 class="text-center">Generate JSON</h1>
             <hr>
         
-            <label for="email"><b>Session ID [If blank, download all data]</b></label>
+            <label for="session-id"><b>Session ID [If blank, download all data]</b></label>
             <br />
             <input type="text" placeholder="Session ID" name="session-id" id="session-id-input" required>
             <br />

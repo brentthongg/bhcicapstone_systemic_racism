@@ -27,7 +27,7 @@ class ResourceManager {
             image.onload = () => {
                 this.resourceCache[url] = image;
                 
-                if(this.isReady()) {
+                if (this.isReady()) {
                     this.readyCallbacks.forEach((func) => { func(); });
                 }
             };

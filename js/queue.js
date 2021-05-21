@@ -27,7 +27,6 @@ class MessageQueue {
     }
 
     pop() { // This isn't technically a queue method but it's needed.
-        console.log(this);
         if (this.arr.length === 0 && this.messageQueueStack.length === 0) {
             console.error("Attempting to pop from an empty MessageQueue.");
             return;
@@ -49,12 +48,11 @@ class MessageQueue {
 
     enqueue(elem) { 
         this.arr.push(elem);
-        console.log(this);   
     }
 
     deque() {
-        if (this.e()) {
-            // do nothing
+        if (this.messageQueueStack.length === 0 && this.arr.length === 0) {
+            return;
         }
 
         return this.arr.shift();

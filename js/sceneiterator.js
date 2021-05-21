@@ -63,8 +63,6 @@ class SceneIterator {
                     textMessage.side = "left";
         }
 
-        console.log(textMessage);
-
         if (textMessage.text.length === 0) { // no messages, reset
             this.messageQueue.emptyContents();
         } else {
