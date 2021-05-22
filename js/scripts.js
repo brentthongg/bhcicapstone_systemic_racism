@@ -182,8 +182,7 @@ function mainLoop(context) {
 
 function update(dt) {
     totalTime += dt;
-    for (i=0; i < charSprites.length; i++) {
-        console.log(charSprites[i][0]); 
+    for (i=0; i < charSprites.length; i++) { 
         charSprites[i][0].update(); 
     }
     // Implement this function if we're doing sprites:
@@ -437,6 +436,38 @@ function initCharacterSprites (scene) {
     }
 }
 
+function drawImage(context, img, x, y, width, height, deg, flip, flop, center) {
+
+    context.save();
+    
+    if(typeof width === "undefined") width = img.width;
+    if(typeof height === "undefined") height = img.height;
+    if(typeof center === "undefined") center = false;
+    
+    // Set rotation point to center of image, instead of top/left
+    if(center) {
+        x -= width/2;
+        y -= height/2;
+    }
+    
+    // Set the origin to the center of the image
+    context.translate(x + width/2, y + height/2);
+    
+    // Rotate the canvas around the origin
+    var rad = 2 * Math.PI - deg * Math.PI / 180;    
+    context.rotate(rad);
+    
+    // Flip/flop the canvas
+    if(flip) flipScale = -1; else flipScale = 1;
+    if(flop) flopScale = -1; else flopScale = 1;
+    context.scale(flipScale, flopScale);
+    
+    // Draw the image    
+    context.drawImage(img, -width/2, -height/2, width, height);
+    
+    context.restore();
+}
+
 //FUNCTION TAKEN FROM: https://mr-easy.github.io/2017-06-26-creating-spritesheet-animation-in-html5-canvas-using-javascript/
 function spriteObject(spritesheet, x, y, timePerFrame, numberOfFrames) {
     this.spritesheet = spritesheet;             //the spritesheet image
@@ -470,6 +501,22 @@ function spriteObject(spritesheet, x, y, timePerFrame, numberOfFrames) {
     //to draw on the canvas, parameter is the context of the canvas to be drawn on
     //5 is the number of Frames per Row
     this.draw = function(context, screenSide) { 
+        if (screenSide === 'left') { 
+            context.save(); 
+            context.scale(-1, 1); 
+            context.translate(2*this.spriteWidth, 0); 
+            context.drawImage(this.spritesheet,
+                (this.frameIndex % this.numSpritesInRow) * (this.width/this.numSpritesInRow),
+                Math.floor(this.frameIndex/this.numSpritesInRow) * this.height/8,
+                 this.width/this.numSpritesInRow,
+                 this.height/8,
+                 x,
+                 y,
+                 this.width/4, 
+                 this.height/6)
+            context.restore();
+        }
+        else {
         context.drawImage(this.spritesheet,
                          (this.frameIndex % this.numSpritesInRow) * (this.width/this.numSpritesInRow),
                           Math.floor(this.frameIndex/this.numSpritesInRow) * this.height/8,
@@ -481,6 +528,7 @@ function spriteObject(spritesheet, x, y, timePerFrame, numberOfFrames) {
                           this.height/6);
     }
 } 
+}
 
 function resetForwardButtonLocation() {
     forwardButtonLocation.cx = -1;
