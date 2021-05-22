@@ -510,8 +510,8 @@ function spriteObject(spritesheet, x, y, timePerFrame, numberOfFrames) {
                 Math.floor(this.frameIndex/this.numSpritesInRow) * this.height/8,
                  this.width/this.numSpritesInRow,
                  this.height/8,
-                 x,
-                 y,
+                 this.x,
+                 this.y + 1000,
                  this.width/4, 
                  this.height/6)
             context.restore();
@@ -754,6 +754,7 @@ function handleMousePressed(mousePosition, context) {
     if (gameStates.currState == 'splash') { return }
     else if (gameStates.currState === 'inGame') {
         let sceneClickResult = clickedStoryButton(mousePosition);
+        console.log(mousePosition); 
 
         if (sceneClickResult.wasClicked) {
             sessionData[currStoryId][Date.now().toString()] = sceneIterator.nextChoiceTexts()[sceneClickResult.button];
