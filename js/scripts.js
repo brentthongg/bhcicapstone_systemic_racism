@@ -183,11 +183,8 @@ function mainLoop(context) {
 function update(dt) {
     totalTime += dt;
     for (i=0; i < charSprites.length; i++) {
-        console.log(charSprites[i][0]); 
         charSprites[i][0].update(); 
     }
-    // Implement this function if we're doing sprites:
-    // updateSpriteEmotion();
 }
 
 
@@ -207,12 +204,6 @@ function renderScene(context) {
     let scene = sceneIterator.get();
     renderSceneBg(context, scene);
     renderSceneButtons(context, scene);
-    /* if (typeof charSprite != "undefined") {
-        let charImg = charSprite.spritesheet; 
-        charImg.addEventListener('load', () => {
-            charSprite.draw(context); 
-        }, false);
-    } */
 }
 
 // https://stackoverflow.com/questions/2936112/text-wrap-in-a-canvas-element
@@ -267,7 +258,6 @@ function renderScenePrompt(context, scene) {
     else {
         y = document.documentElement.clientHeight * 0.75;
     }
-    // renderScenePromptBackground(context, scene, lines, y);
 
     for (let i = 0; i < lines.length; i++) {
         let line = lines[i];
@@ -444,10 +434,9 @@ function spriteObject(spritesheet, x, y, timePerFrame, numberOfFrames) {
     this.y = y; 
     this.width = spritesheet.width; 
     this.height = spritesheet.height;                             
-    //this.width = width;                         //width of spritesheet
-    //this.height = height;                       //height of spritesheet
+
     this.timePerFrame = timePerFrame;           //time in(ms) given to each frame
-    //this.numberOfFrames = (width/numberOfFramesPerRow) * (height)
+
     this.numberOfFrames = numberOfFrames || 1;  //number of frames(sprites) in the spritesheet, default 1
     this.numSpritesInRow = 5; 
     this.spriteHeight = this.height/8; 
@@ -470,15 +459,29 @@ function spriteObject(spritesheet, x, y, timePerFrame, numberOfFrames) {
     //to draw on the canvas, parameter is the context of the canvas to be drawn on
     //5 is the number of Frames per Row
     this.draw = function(context, screenSide) { 
+        var widthParity = 1;
+        if (screenSide === 'left') {
+            // Flip sprite: https://stackoverflow.com/questions/35973441/how-to-horizontally-flip-an-image
+            context.translate(x + (this.width / this.numSpritesInRow), y);
+            context.scale(-1, 1);
+            
+            widthParity = 0;
+        }
+
         context.drawImage(this.spritesheet,
-                         (this.frameIndex % this.numSpritesInRow) * (this.width/this.numSpritesInRow),
-                          Math.floor(this.frameIndex/this.numSpritesInRow) * this.height/8,
-                          this.width/this.numSpritesInRow,
-                          this.height/8,
-                          x,
-                          y,
-                          this.width/4, 
-                          this.height/6);
+                          (this.frameIndex % this.numSpritesInRow) * (this.width / this.numSpritesInRow),
+                          Math.floor(this.frameIndex / this.numSpritesInRow) * this.height / 8,
+                          (this.width / this.numSpritesInRow),
+                          this.height / 8,
+                          widthParity * x,
+                          widthParity * y,
+                          this.width / 4, 
+                          this.height / 6);
+    
+        if (screenSide === 'left') {
+            context.setTransform(1, 0, 0, 1, 0, 0); // undo flip
+        }
+                          
     }
 } 
 
@@ -587,9 +590,9 @@ function renderChoiceButtons(context, scene) {
 }
 
 function renderSceneCharacters(context, scene) {
-        for (let i =0; i < charSprites.length; i++) {
+        for (let i = 0; i < charSprites.length; i++) {
             //0 represents the actual CharSprite Object 
-            //1 in the array refers to the side of the screen
+            //1 in the array refers to the side of the screen 
             charSprites[i][0].draw(context, charSprites[i][1]); 
         }; 
         renderScenePrompt(context, scene);
