@@ -183,7 +183,8 @@ function mainLoop(context) {
 function update(dt) {
     totalTime += dt;
     for (i=0; i < charSprites.length; i++) {
-        charSprites[i].update(); 
+        console.log(charSprites[i][0]); 
+        charSprites[i][0].update(); 
     }
     // Implement this function if we're doing sprites:
     // updateSpriteEmotion();
@@ -406,6 +407,8 @@ function renderMessages(context) {
 
 function initCharacterSprites (scene) {
     charSprites = []
+    let numCharsLeftSide = 0; 
+    let numCharsRightSide = 0; 
     for (let i = 0; i < scene.characters.length; i++) {
         var charLink = scene.characters[i].charImg.id; 
         var charEmotion = scene.characters[i].charEmotion; 
@@ -415,29 +418,26 @@ function initCharacterSprites (scene) {
         let charHeight = charImage.height;
         //varShift represents the shift in the x coords on the screen depending on if char is on left or right of the screen
         // If no side is defined, the original value
-        //8 is hardcoded
         let spriteHeight = charImage.height/8; 
         //5 refers to the numSpritesinRow
         let spriteWidth = charImage.width/5;
         let varShift = charWidth/2; 
         if (screenSide == 'left') {
-            varShift = 1.8*spriteWidth; 
+            varShift = (1.8 + (0.6*numCharsLeftSide)) *spriteWidth;
+            numCharsLeftSide = numCharsLeftSide + 1;   
         }
         else if (screenSide == 'right') {
-            varShift = -1.5 * (spriteWidth/2); 
+            varShift = (-1.4 - 0.9*numCharsRightSide) * (spriteWidth/2); 
+            numCharsRightSide = numCharsRightSide + 1; 
         };  
         let x0 = document.documentElement.clientWidth / 2 - varShift; 
-        //Change the magic number 10 later
         let y0 = document.documentElement.clientHeight - 100 - spriteHeight;
-        //context.drawImage(charImage, x0, y0, charWidth, charHeight);
-        //Change y0 later
-        //The width is messed up!!
         charSprite = new spriteObject(charImage, x0, y0 , 100, 36);
-        charSprites.push(charSprite); 
+        charSprites.push([charSprite, screenSide]); 
     }
 }
 
-// CITATION: https://mr-easy.github.io/2017-06-26-creating-spritesheet-animation-in-html5-canvas-using-javascript/
+//FUNCTION TAKEN FROM: https://mr-easy.github.io/2017-06-26-creating-spritesheet-animation-in-html5-canvas-using-javascript/
 function spriteObject(spritesheet, x, y, timePerFrame, numberOfFrames) {
     this.spritesheet = spritesheet;             //the spritesheet image
     this.x = x;                                 //the x coordinate of the object
@@ -467,7 +467,9 @@ function spriteObject(spritesheet, x, y, timePerFrame, numberOfFrames) {
         }
     }
 
-    this.draw = function(context) { 
+    //to draw on the canvas, parameter is the context of the canvas to be drawn on
+    //5 is the number of Frames per Row
+    this.draw = function(context, screenSide) { 
         context.drawImage(this.spritesheet,
                          (this.frameIndex % this.numSpritesInRow) * (this.width/this.numSpritesInRow),
                           Math.floor(this.frameIndex/this.numSpritesInRow) * this.height/8,
@@ -585,26 +587,10 @@ function renderChoiceButtons(context, scene) {
 }
 
 function renderSceneCharacters(context, scene) {
-    /*for (let i = 0; i < scene.characters.length; i++) {
-        var charImage = resourceManager.get(characterImages[scene.characters[i].charImg.id]);
-        var screenSide = scene.characters[i].charScreenSide;
-        let charWidth = charImage.width;
-        let charHeight = charImage.height;
-        //varShift represents the shift in the x coords on the screen depending on if char is on left or right of the screen
-        // If no side is defined, the original value
-        let varShift = charWidth/2; 
-        if (screenSide == 'left') {
-            varShift = 1.5*charWidth; 
-        }
-        else if (screenSide == 'right') {
-            varShift = -1 * (charWidth/2); 
-        }; 
-        let x0 = document.documentElement.clientWidth / 2 - varShift; 
-        let y0 = document.documentElement.clientHeight - charHeight;
-        //context.drawImage(charImage, x0, y0, charWidth, charHeight);
-        charSprite = new spriteObject(charImage, x0, y0, 10, 80);*/
         for (let i =0; i < charSprites.length; i++) {
-            charSprites[i].draw(context); 
+            //0 represents the actual CharSprite Object 
+            //1 in the array refers to the side of the screen
+            charSprites[i][0].draw(context, charSprites[i][1]); 
         }; 
         renderScenePrompt(context, scene);
     }
